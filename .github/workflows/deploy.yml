@@ -1,6 +1,6 @@
 # Сборка и публикация на GitHub Pages при каждом push в main.
-# Шаг «Unpack» нужен один раз: код загружен через браузер одним файлом app-source.json,
-# workflow раскладывает его в дерево файлов и коммитит. Потом шаг пропускается.
+# Собранный сайт (dist) кладётся в ветку gh-pages; Pages настроен «Deploy from a branch: gh-pages / root».
+# (Публикация через actions/deploy-pages зависла у GitHub 15.10.2026, поэтому используем ветку.)
 name: Deploy to GitHub Pages
 
 on:
@@ -10,8 +10,6 @@ on:
 
 permissions:
   contents: write
-  pages: write
-  id-token: write
 
 concurrency:
   group: pages
@@ -52,25 +50,13 @@ jobs:
       - run: npm run icons
       - run: npm run build
 
-      - uses: actions/configure-pages@v5
-      - uses: actions/upload-pages-artifact@v3
-        with:
-          path: dist
-
-  deploy:
-    needs: build
-    runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    steps:
-      # Разовая починка: первая публикация 15.10.2026 зависла в статусе updating_pages
-      # и блокирует новые. Отменяем её; если её уже нет, шаг просто пропускается.
-      - name: Cancel stuck Pages deployment
-        continue-on-error: true
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: gh api -X POST "repos/${{ github.repository }}/pages/deployments/9d1fb51f400fd8a488ee78848861eea7efc79ec4/cancel" --hostname github.com
-
-      - id: deployment
-        uses: actions/deploy-pages@v4
+      - name: Publish dist to gh-pages branch
+        run: |
+          cd dist
+          touch .nojekyll
+          git init -q -b gh-pages
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -q -m "Deploy ${GITHUB_SHA}"
+          git push -f "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git" gh-pages
