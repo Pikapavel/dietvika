@@ -1,0 +1,68 @@
+# Сборка и публикация на GitHub Pages при каждом push в main.
+# Шаг «Unpack» нужен один раз: код загружен через браузер одним файлом app-source.json,
+# workflow раскладывает его в дерево файлов и коммитит. Потом шаг пропускается.
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Unpack app-source.json (one time)
+        if: hashFiles('app-source.json') != ''
+        run: |
+          python3 - <<'EOF'
+          import json, os
+          j = json.load(open("app-source.json", encoding="utf-8"))
+          for p, c in j.items():
+              assert not os.path.isabs(p) and ".." not in p.split("/")
+              d = os.path.dirname(p)
+              if d:
+                  os.makedirs(d, exist_ok=True)
+              with open(p, "w", encoding="utf-8", newline="") as f:
+                  f.write(c)
+          EOF
+          git rm -q app-source.json
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "Unpack app sources from app-source.json"
+          git push
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - run: npm ci
+      - run: npm run icons
+      - run: npm run build
+
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
