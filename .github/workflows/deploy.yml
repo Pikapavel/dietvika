@@ -64,5 +64,13 @@ jobs:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
+      # Разовая починка: первая публикация 15.10.2026 зависла в статусе updating_pages
+      # и блокирует новые. Отменяем её; если её уже нет, шаг просто пропускается.
+      - name: Cancel stuck Pages deployment
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh api -X POST "repos/${{ github.repository }}/pages/deployments/9d1fb51f400fd8a488ee78848861eea7efc79ec4/cancel" --hostname github.com
+
       - id: deployment
         uses: actions/deploy-pages@v4
