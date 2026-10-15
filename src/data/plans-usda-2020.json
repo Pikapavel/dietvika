@@ -1,0 +1,296 @@
+{
+ "source": "USDA Dietary Guidelines 2020-2025, Appendix 3, Healthy U.S.-Style Dietary Pattern (Table A3-2); прислано Викой 12.10.2026",
+ "units": {
+  "cup": "≈240 мл",
+  "oz_eq": "≈28 г готового продукта (для белка/зерновых — эквивалент)"
+ },
+ "hand_units": {
+  "protein": {
+   "palm": 3,
+   "egg": 1,
+   "thumb_tip_nut_butter": 1
+  },
+  "grain": {
+   "cupped_hand_cooked": 1,
+   "bread_slice": 1
+  },
+  "veg": {
+   "fist": 1,
+   "leafy_fist": 0.5
+  },
+  "fruit": {
+   "fist": 1,
+   "dried_half_fist": 1
+  },
+  "dairy": {
+   "glass": 1,
+   "hard_cheese_1_5oz": 1
+  }
+ },
+ "plans": [
+  {
+   "kcal": 1000,
+   "daily": {
+    "fruit_cup": 1.0,
+    "veg_cup": 1.0,
+    "grain_ozeq": 3.0,
+    "protein_ozeq": 2.0,
+    "dairy_cup": 2.0,
+    "oils_g": 15.0,
+    "other_kcal_limit": 130.0
+   },
+   "weekly": {
+    "veg_dark_green_cup": 0.5,
+    "veg_red_orange_cup": 2.5,
+    "veg_beans_peas_cup": 0.5,
+    "veg_starchy_cup": 2.0,
+    "veg_other_cup": 1.5,
+    "protein_meat_poultry_eggs_ozeq": 10.0,
+    "protein_seafood_ozeq": 3.0,
+    "protein_nuts_seeds_soy_ozeq": 2.0
+   }
+  },
+  {
+   "kcal": 1200,
+   "daily": {
+    "fruit_cup": 1.0,
+    "veg_cup": 1.5,
+    "grain_ozeq": 4.0,
+    "protein_ozeq": 3.0,
+    "dairy_cup": 2.5,
+    "oils_g": 17.0,
+    "other_kcal_limit": 80.0
+   },
+   "weekly": {
+    "veg_dark_green_cup": 1.0,
+    "veg_red_orange_cup": 3.0,
+    "veg_beans_peas_cup": 0.5,
+    "veg_starchy_cup": 3.5,
+    "veg_other_cup": 2.5,
+    "protein_meat_poultry_eggs_ozeq": 14.0,
+    "protein_seafood_ozeq": 4.0,
+    "protein_nuts_seeds_soy_ozeq": 2.0
+   }
+  },
+  {
+   "kcal": 1400,
+   "daily": {
+    "fruit_cup": 1.5,
+    "veg_cup": 1.5,
+    "grain_ozeq": 5.0,
+    "protein_ozeq": 4.0,
+    "dairy_cup": 2.5,
+    "oils_g": 17.0,
+    "other_kcal_limit": 90.0
+   },
+   "weekly": {
+    "veg_dark_green_cup": 1.0,
+    "veg_red_orange_cup": 3.0,
+    "veg_beans_peas_cup": 0.5,
+    "veg_starchy_cup": 3.5,
+    "veg_other_cup": 2.5,
+    "protein_meat_poultry_eggs_ozeq": 19.0,
+    "protein_seafood_ozeq": 6.0,
+    "protein_nuts_seeds_soy_ozeq": 3.0
+   }
+  },
+  {
+   "kcal": 1600,
+   "daily": {
+    "fruit_cup": 1.5,
+    "veg_cup": 2.0,
+    "grain_ozeq": 5.0,
+    "protein_ozeq": 5.0,
+    "dairy_cup": 3.0,
+    "oils_g": 22.0,
+    "other_kcal_limit": 100.0
+   },
+   "weekly": {
+    "veg_dark_green_cup": 1.5,
+    "veg_red_orange_cup": 4.0,
+    "veg_beans_peas_cup": 1.0,
+    "veg_starchy_cup": 4.0,
+    "veg_other_cup": 3.5,
+    "protein_meat_poultry_eggs_ozeq": 23.0,
+    "protein_seafood_ozeq": 8.0,
+    "protein_nuts_seeds_soy_ozeq": 4.0
+   }
+  },
+  {
+   "kcal": 1800,
+   "daily": {
+    "fruit_cup": 1.5,
+    "veg_cup": 2.5,
+    "grain_ozeq": 6.0,
+    "protein_ozeq": 5.0,
+    "dairy_cup": 3.0,
+    "oils_g": 24.0,
+    "other_kcal_limit": 140.0
+   },
+   "weekly": {
+    "veg_dark_green_cup": 1.5,
+    "veg_red_orange_cup": 5.5,
+    "veg_beans_peas_cup": 1.5,
+    "veg_starchy_cup": 5.0,
+    "veg_other_cup": 4.0,
+    "protein_meat_poultry_eggs_ozeq": 23.0,
+    "protein_seafood_ozeq": 8.0,
+    "protein_nuts_seeds_soy_ozeq": 4.0
+   }
+  },
+  {
+   "kcal": 2000,
+   "daily": {
+    "fruit_cup": 2.0,
+    "veg_cup": 2.5,
+    "grain_ozeq": 6.0,
+    "protein_ozeq": 5.5,
+    "dairy_cup": 3.0,
+    "oils_g": 27.0,
+    "other_kcal_limit": 240.0
+   },
+   "weekly": {
+    "veg_dark_green_cup": 1.5,
+    "veg_red_orange_cup": 5.5,
+    "veg_beans_peas_cup": 1.5,
+    "veg_starchy_cup": 5.0,
+    "veg_other_cup": 4.0,
+    "protein_meat_poultry_eggs_ozeq": 26.0,
+    "protein_seafood_ozeq": 8.0,
+    "protein_nuts_seeds_soy_ozeq": 5.0
+   }
+  },
+  {
+   "kcal": 2200,
+   "daily": {
+    "fruit_cup": 2.0,
+    "veg_cup": 3.0,
+    "grain_ozeq": 7.0,
+    "protein_ozeq": 6.0,
+    "dairy_cup": 3.0,
+    "oils_g": 29.0,
+    "other_kcal_limit": 250.0
+   },
+   "weekly": {
+    "veg_dark_green_cup": 2.0,
+    "veg_red_orange_cup": 6.0,
+    "veg_beans_peas_cup": 2.0,
+    "veg_starchy_cup": 6.0,
+    "veg_other_cup": 5.0,
+    "protein_meat_poultry_eggs_ozeq": 28.0,
+    "protein_seafood_ozeq": 9.0,
+    "protein_nuts_seeds_soy_ozeq": 5.0
+   }
+  },
+  {
+   "kcal": 2400,
+   "daily": {
+    "fruit_cup": 2.0,
+    "veg_cup": 3.0,
+    "grain_ozeq": 8.0,
+    "protein_ozeq": 6.5,
+    "dairy_cup": 3.0,
+    "oils_g": 31.0,
+    "other_kcal_limit": 320.0
+   },
+   "weekly": {
+    "veg_dark_green_cup": 2.0,
+    "veg_red_orange_cup": 6.0,
+    "veg_beans_peas_cup": 2.0,
+    "veg_starchy_cup": 6.0,
+    "veg_other_cup": 5.0,
+    "protein_meat_poultry_eggs_ozeq": 31.0,
+    "protein_seafood_ozeq": 10.0,
+    "protein_nuts_seeds_soy_ozeq": 5.0
+   }
+  },
+  {
+   "kcal": 2600,
+   "daily": {
+    "fruit_cup": 2.0,
+    "veg_cup": 3.5,
+    "grain_ozeq": 9.0,
+    "protein_ozeq": 6.5,
+    "dairy_cup": 3.0,
+    "oils_g": 34.0,
+    "other_kcal_limit": 350.0
+   },
+   "weekly": {
+    "veg_dark_green_cup": 2.5,
+    "veg_red_orange_cup": 7.0,
+    "veg_beans_peas_cup": 2.5,
+    "veg_starchy_cup": 7.0,
+    "veg_other_cup": 5.5,
+    "protein_meat_poultry_eggs_ozeq": 31.0,
+    "protein_seafood_ozeq": 10.0,
+    "protein_nuts_seeds_soy_ozeq": 5.0
+   }
+  },
+  {
+   "kcal": 2800,
+   "daily": {
+    "fruit_cup": 2.5,
+    "veg_cup": 3.5,
+    "grain_ozeq": 10.0,
+    "protein_ozeq": 7.0,
+    "dairy_cup": 3.0,
+    "oils_g": 36.0,
+    "other_kcal_limit": 370.0
+   },
+   "weekly": {
+    "veg_dark_green_cup": 2.5,
+    "veg_red_orange_cup": 7.0,
+    "veg_beans_peas_cup": 2.5,
+    "veg_starchy_cup": 7.0,
+    "veg_other_cup": 5.5,
+    "protein_meat_poultry_eggs_ozeq": 33.0,
+    "protein_seafood_ozeq": 10.0,
+    "protein_nuts_seeds_soy_ozeq": 6.0
+   }
+  },
+  {
+   "kcal": 3000,
+   "daily": {
+    "fruit_cup": 2.5,
+    "veg_cup": 4.0,
+    "grain_ozeq": 10.0,
+    "protein_ozeq": 7.0,
+    "dairy_cup": 3.0,
+    "oils_g": 44.0,
+    "other_kcal_limit": 440.0
+   },
+   "weekly": {
+    "veg_dark_green_cup": 2.5,
+    "veg_red_orange_cup": 7.5,
+    "veg_beans_peas_cup": 3.0,
+    "veg_starchy_cup": 8.0,
+    "veg_other_cup": 7.0,
+    "protein_meat_poultry_eggs_ozeq": 33.0,
+    "protein_seafood_ozeq": 10.0,
+    "protein_nuts_seeds_soy_ozeq": 6.0
+   }
+  },
+  {
+   "kcal": 3200,
+   "daily": {
+    "fruit_cup": 2.5,
+    "veg_cup": 4.0,
+    "grain_ozeq": 10.0,
+    "protein_ozeq": 7.0,
+    "dairy_cup": 3.0,
+    "oils_g": 51.0,
+    "other_kcal_limit": 580.0
+   },
+   "weekly": {
+    "veg_dark_green_cup": 2.5,
+    "veg_red_orange_cup": 7.5,
+    "veg_beans_peas_cup": 3.0,
+    "veg_starchy_cup": 8.0,
+    "veg_other_cup": 7.0,
+    "protein_meat_poultry_eggs_ozeq": 33.0,
+    "protein_seafood_ozeq": 10.0,
+    "protein_nuts_seeds_soy_ozeq": 6.0
+   }
+  }
+ ]
+}

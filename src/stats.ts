@@ -1,0 +1,83 @@
+// Сводка недели (пн–вс): для экрана «Неделя» и текста для специалиста.
+
+import { addDays, rangeLabel, shortDate, weekDays, type ISODate } from "./dates";
+import { allClosed, hasEntries, sumDay, type Log, type Weights } from "./log";
+import { LEVELS, levelNumber, planGoals, waterGoal, type Goals, type Plan } from "./plan";
+import { FREE, GROUPS, GROUP_IDS, fmt, plural, GLASS, toDisplay, type GroupId } from "./units";
+
+export interface WeekStats {
+  days: ISODate[];
+  /** дни недели, которые уже наступили */
+  past: ISODate[];
+  /** дни с хотя бы одной отметкой */
+  logged: ISODate[];
+  goals: Goals;
+  /** среднее съеденное за день по дням с отметками, в единицах USDA */
+  avg: Record<GroupId, number>;
+  /** avg / goal */
+  ratio: Record<GroupId, number>;
+  free: number;
+  waterAvg: number;
+  waterGoal: number;
+  fullDays: number;
+}
+
+export function weekStats(plan: Plan, log: Log, anyDay: ISODate, todayIso: ISODate): WeekStats {
+  const days = weekDays(anyDay);
+  const past = days.filter((d) => d <= todayIso);
+  const logged = past.filter((d) => hasEntries(log, d));
+  const goals = planGoals(plan);
+  const avg = {} as Record<GroupId, number>;
+  const ratio = {} as Record<GroupId, number>;
+  for (const g of GROUP_IDS) {
+    const total = logged.reduce((a, d) => a + sumDay(log, d, g), 0);
+    avg[g] = logged.length ? total / logged.length : 0;
+    ratio[g] = goals[g] > 0 ? avg[g] / goals[g] : 0;
+  }
+  const free = days.reduce((a, d) => a + sumDay(log, d, "free"), 0);
+  const water = logged.reduce((a, d) => a + sumDay(log, d, "water"), 0);
+  return {
+    days, past, logged, goals, avg, ratio, free,
+    waterAvg: logged.length ? water / logged.length : 0,
+    waterGoal: waterGoal(plan),
+    fullDays: past.filter((d) => allClosed(log, d, goals)).length,
+  };
+}
+
+/** Последний вес не позже даты */
+export function lastWeight(w: Weights, upto: ISODate): [ISODate, number] | null {
+  const keys = Object.keys(w).filter((d) => d <= upto).sort();
+  const k = keys[keys.length - 1];
+  return k ? [k, w[k]] : null;
+}
+
+const kg = (n: number) => n.toLocaleString("ru-RU", { maximumFractionDigits: 1 });
+
+/** Текст сводки для специалиста (без лишних эмодзи, читается в любом мессенджере) */
+export function summaryText(plan: Plan, log: Log, weights: Weights, todayIso: ISODate): string {
+  const s = weekStats(plan, log, todayIso, todayIso);
+  const lines: string[] = [];
+  lines.push(`DietVika — сводка за неделю ${rangeLabel(s.days[0], s.days[6])}`);
+  if (plan.client) lines.push(`Клиент: ${plan.client}`);
+  lines.push(`Уровень плана: ${levelNumber(plan.kcal)} из ${LEVELS.length}, старт ${shortDate(plan.start)}`);
+  lines.push(`Дней с отметками: ${s.logged.length} из ${s.past.length}`);
+  lines.push("");
+  lines.push("В среднем за день (съедено / цель):");
+  for (const g of GROUP_IDS) {
+    const eaten = toDisplay(g, s.avg[g]);
+    const goal = toDisplay(g, s.goals[g]);
+    lines.push(`• ${GROUPS[g].name}: ${fmt(eaten)} / ${fmt(goal)} — ${Math.round(s.ratio[g] * 100)}%`);
+  }
+  lines.push(`• Вода: ${fmt(s.waterAvg)} / ${s.waterGoal} ${plural(s.waterGoal, GLASS)}`);
+  lines.push("");
+  lines.push(`Дней со всеми кольцами: ${s.fullDays}`);
+  lines.push(`${FREE.name}: ${s.free} за неделю`);
+  const now = lastWeight(weights, todayIso);
+  if (now) {
+    const before = lastWeight(weights, addDays(s.days[0], -1));
+    lines.push(`Вес: ${kg(now[1])} кг (${shortDate(now[0])})` + (before ? `, раньше ${kg(before[1])} кг (${shortDate(before[0])})` : ""));
+  } else {
+    lines.push("Вес: не отмечен");
+  }
+  return lines.join("\n");
+}
