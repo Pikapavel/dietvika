@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import foodsData from "../data/foods.json";
-import { addDays, longDate, shortDate, today as todayIso, weekDays, type ISODate } from "../dates";
+import { addDays, longDate, today as todayIso, type ISODate } from "../dates";
 import { sumDay, type Entry, type LogGroup } from "../log";
 import { planGoals, waterGoal, type Plan } from "../plan";
 import type { AppData } from "../store";
@@ -10,7 +10,7 @@ import { Sheet } from "../components/Sheet";
 import { useToast } from "../components/Toast";
 import { BangButton, SugarSheet } from "../components/SugarSheet";
 import {
-  FREE, GLASS, SUGAR, GROUPS, GROUP_IDS, PICKER, WATER, fmt, fromDisplay, handLines, nudgeText, plural,
+  FREE, GLASS, SUGAR, VEG_NOTE, VEG_WHY, vegProteinOrder, GROUPS, GROUP_IDS, PICKER, WATER, fmt, fromDisplay, handLines, nudgeText, plural,
   portions, portionsAcc, toDisplay, type GroupId,
 } from "../units";
 
@@ -44,16 +44,8 @@ export function Today({ data, plan }: { data: AppData; plan: Plan }) {
   const behind = GROUP_IDS.filter((g) => progress[g] < 1 - 1e-9).sort((a, b) => progress[a] - progress[b])[0];
 
   const water = sumDay(log, date, "water");
-  const week = weekDays(date);
-  const freeWeek = week.reduce((a, d) => a + sumDay(log, d, "free"), 0);
-
-  const removeLastFree = () => {
-    let best: { d: ISODate; i: number; t: number } | null = null;
-    for (const d of week) (log[d] ?? []).forEach((e, i) => {
-      if (e.g === "free" && (!best || e.t >= best.t)) best = { d, i, t: e.t };
-    });
-    if (best) data.removeAt((best as { d: ISODate }).d, (best as { i: number }).i);
-  };
+  // свободный приём пищи — счётчик за выбранный день, без цели и лимита
+  const free = sumDay(log, date, "free");
 
   return (
     <>
@@ -88,7 +80,7 @@ export function Today({ data, plan }: { data: AppData; plan: Plan }) {
           behind ? (
             <div className="nudge" role="status">
               <span className="dot" style={{ background: `var(--${behind})` }} />
-              <div><strong>Что доесть.</strong> {nudgeText(behind, goals[behind] - eaten[behind])}</div>
+              <div><strong>Что доесть.</strong> {nudgeText(behind, goals[behind] - eaten[behind], !!plan.veg)}</div>
             </div>
           ) : (
             <div className="nudge" role="status"><span className="dot" style={{ background: "var(--ok)" }} /><div>Все кольца закрыты. Отличный день!</div></div>
@@ -122,11 +114,11 @@ export function Today({ data, plan }: { data: AppData; plan: Plan }) {
             unitName="стакан воды"
           />
           <Tile id="free" wide name={FREE.name} color="var(--free)"
-            value={String(freeWeek)} goal=" за неделю"
-            canMinus={freeWeek > 0}
+            value={String(free)} goal={isToday ? " сегодня" : " вчера"}
+            canMinus={free > 0}
             onOpen={() => setOpen("free")}
             onPlus={() => data.add(date, "free", FREE.name, 1)}
-            onMinus={removeLastFree}
+            onMinus={() => data.minus(date, "free", 1)}
             unitName="отметка"
           />
         </div>
@@ -138,11 +130,11 @@ export function Today({ data, plan }: { data: AppData; plan: Plan }) {
       </section>
 
       {open && open !== "water" && open !== "free" && open !== "sugar" && (
-        <GroupSheet g={open} date={date} isToday={isToday} data={data} goal={goals[open]} onClose={() => setOpen(null)} />
+        <GroupSheet g={open} date={date} isToday={isToday} data={data} goal={goals[open]} veg={!!plan.veg} onClose={() => setOpen(null)} />
       )}
       {open === "water" && <WaterSheet date={date} isToday={isToday} data={data} goal={wGoal} onClose={() => setOpen(null)} />}
       {open === "free" && (
-        <FreeSheet date={date} data={data} count={freeWeek} onClose={() => setOpen(null)} onSugar={() => setOpen("sugar")} />
+        <FreeSheet date={date} isToday={isToday} data={data} count={free} onClose={() => setOpen(null)} onSugar={() => setOpen("sugar")} />
       )}
       {open === "sugar" && <SugarSheet onClose={() => setOpen(null)} />}
     </>
@@ -205,14 +197,15 @@ function entriesOf(data: AppData, d: ISODate, g: LogGroup) {
   return (data.log[d] ?? []).map((e, i) => ({ e, i, d })).filter((x) => x.e.g === g);
 }
 
-function GroupSheet({ g, date, isToday, data, goal, onClose }: {
-  g: GroupId; date: ISODate; isToday: boolean; data: AppData; goal: number; onClose: () => void;
+function GroupSheet({ g, date, isToday, data, goal, veg, onClose }: {
+  g: GroupId; date: ISODate; isToday: boolean; data: AppData; goal: number; veg: boolean; onClose: () => void;
 }) {
   const [sel, setSel] = useState(1);
   const toast = useToast();
   const color = `var(--${g})`;
   const n = sumDay(data.log, date, g);
-  const foods = FOODS.filter((f) => f.g === g);
+  const groupFoods = FOODS.filter((f) => f.g === g);
+  const foods = veg && g === "prot" ? vegProteinOrder(groupFoods) : groupFoods;
   const add = (name: string, usda: number) => {
     data.add(date, g, name, usda);
     toast(`${name}: +${portions(toDisplay(g, usda))}`);
@@ -225,8 +218,9 @@ function GroupSheet({ g, date, isToday, data, goal, onClose }: {
         <HandIcon shape={GROUPS[g].shape} color={color} />
         <div>
           <strong>Одна порция рукой</strong>
-          <ul>{handLines(g).map((l) => <li key={l}>{l}</li>)}</ul>
-          <p className="muted" style={{ marginTop: 6 }}>{GROUPS[g].why}</p>
+          <ul>{handLines(g, veg).map((l) => <li key={l}>{l}</li>)}</ul>
+          <p className="muted" style={{ marginTop: 6 }}>{veg && g === "prot" ? VEG_WHY : GROUPS[g].why}</p>
+          {veg && g === "prot" && <p style={{ marginTop: 6 }}><strong>Вегетарианский план.</strong> {VEG_NOTE}</p>}
         </div>
       </div>
       <div>
@@ -286,14 +280,14 @@ function WaterSheet({ date, isToday, data, goal, onClose }: { date: ISODate; isT
   );
 }
 
-function FreeSheet({ date, data, count, onClose, onSugar }: {
-  date: ISODate; data: AppData; count: number; onClose: () => void; onSugar: () => void;
+function FreeSheet({ date, isToday, data, count, onClose, onSugar }: {
+  date: ISODate; isToday: boolean; data: AppData; count: number; onClose: () => void; onSugar: () => void;
 }) {
   const toast = useToast();
-  const items = weekDays(date).flatMap((d) => entriesOf(data, d, "free"));
+  const items = entriesOf(data, date, "free");
   return (
     <Sheet label={FREE.name} onClose={onClose}>
-      <SheetHead eyebrow={`За неделю: ${count}`} title={FREE.name} color="var(--free)" onClose={onClose} />
+      <SheetHead eyebrow={`${isToday ? "Сегодня" : "Вчера"}: ${count}`} title={FREE.name} color="var(--free)" onClose={onClose} />
       <div className="hint">
         <HandIcon shape="star" color="var(--free)" />
         <div>
@@ -315,7 +309,7 @@ function FreeSheet({ date, data, count, onClose, onSugar }: {
         <span>{SUGAR.line}</span>
         <BangButton onClick={onSugar} label="Сахар: подробнее" />
       </div>
-      <Marks title="На этой неделе" items={items} label={(e, d) => `${shortDate(d)} · ${e.f}`} onRemove={data.removeAt} />
+      <Marks title={isToday ? "Отмечено сегодня" : "Отмечено вчера"} items={items} label={(e) => e.f} onRemove={data.removeAt} />
     </Sheet>
   );
 }

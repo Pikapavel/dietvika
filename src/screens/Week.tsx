@@ -58,8 +58,21 @@ export function Week({ data, plan }: { data: AppData; plan: Plan }) {
         <div className="stats">
           <div><b>{s.fullDays}</b><span>{plural(s.fullDays, ["день", "дня", "дней"])} со всеми кольцами</span></div>
           <div><b>{series}</b><span>{plural(series, ["день", "дня", "дней"])} подряд — серия</span></div>
-          <div><b>{s.free}</b><span>{FREE.name.toLowerCase()} за неделю</span></div>
-          <div><b>{fmt(s.waterAvg)}<span className="muted small">/{s.waterGoal}</span></b><span>{plural(s.waterGoal, GLASS)} воды в среднем</span></div>
+          <div style={{ gridColumn: "1 / -1" }}><b>{fmt(s.waterAvg)}<span className="muted small">/{s.waterGoal}</span></b><span>{plural(s.waterGoal, GLASS)} воды в среднем</span></div>
+        </div>
+
+        <div className="card" data-testid="free-week">
+          <div className="weekbar">
+            <div className="eyebrow">{FREE.name}</div>
+            <span className="small muted">за неделю: <strong className="num" style={{ color: "var(--ink)" }}>{s.free}</strong></span>
+          </div>
+          <div className="freedays" role="list" aria-label="Свободный приём пищи по дням">
+            {s.days.map((d, i) => (
+              <div key={d} role="listitem" className={d > now ? "future" : undefined} aria-label={`${WEEKDAY_SHORT[i]}: ${d > now ? "ещё не наступил" : s.freeByDay[i]}`}>
+                <b>{d > now ? "·" : s.freeByDay[i]}</b><span className={d === now ? "today" : undefined}>{WEEKDAY_SHORT[i]}</span>
+              </div>
+            ))}
+          </div>
         </div>
 
         <div className="card">

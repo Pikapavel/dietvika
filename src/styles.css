@@ -206,3 +206,11 @@ tfoot td { font-weight: 700; border-bottom: 0; }
 .sugar-line { display: flex; align-items: center; justify-content: space-between; gap: 10px; font-size: .8rem; color: var(--muted); }
 .tags { display: flex; flex-wrap: wrap; gap: 6px; }
 .tags .chip { white-space: normal; color: var(--ink); }
+.check { display: flex; align-items: center; gap: 10px; min-height: 40px; font-weight: 600; cursor: pointer; }
+.check input { width: 22px; height: 22px; accent-color: var(--prot); flex: none; margin: 0; }
+.freedays { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; text-align: center; }
+.freedays > div { background: var(--track); border-radius: 10px; padding: 6px 0 4px; display: flex; flex-direction: column; gap: 1px; }
+.freedays > div.future { opacity: .45; }
+.freedays b { font-family: var(--display); font-size: .95rem; font-variant-numeric: tabular-nums; }
+.freedays span { font-size: .72rem; color: var(--muted); }
+.freedays span.today { color: var(--ink); font-weight: 700; }

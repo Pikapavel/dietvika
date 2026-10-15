@@ -18,7 +18,7 @@ export function ConfirmPlan({ plan, hasPlan, onAccept, onCancel }: { plan: Plan;
           </div>
         ))}
         <div className="grow"><span><span className="dot" style={{ background: "var(--water)" }} />Вода</span><span className="num">{w} {plural(w, GLASS)}</span></div>
-        <p className="muted small">Старт: {dayMonth(plan.start)}.</p>
+        <p className="muted small">Старт: {dayMonth(plan.start)}.{plan.veg ? " Вегетарианский план: белка в полтора раза больше." : ""}</p>
       </div>
       {hasPlan && <div className="banner">Этот план заменит текущий. Твои отметки и вес сохранятся.</div>}
       <div className="row-btns">

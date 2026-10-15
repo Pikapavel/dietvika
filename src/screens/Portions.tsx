@@ -3,7 +3,7 @@ import { SugarSheet } from "../components/SugarSheet";
 import { HandIcon } from "../components/HandIcon";
 import { ExampleDay, Plate, Tips } from "../components/Method";
 import { go } from "../store";
-import { FREE, GROUPS, GROUP_IDS, WATER, handLines } from "../units";
+import { FREE, GROUPS, GROUP_IDS, VEG_NOTE, WATER, handLines } from "../units";
 
 export function Portions() {
   const [sugar, setSugar] = useState(false);
@@ -26,6 +26,7 @@ export function Portions() {
               <h3 style={{ color: `var(--${g})` }}>{GROUPS[g].name}</h3>
               <ul>{handLines(g).map((l) => <li key={l}>{l}</li>)}</ul>
               <p className="muted" style={{ marginTop: 6 }}>{GROUPS[g].why}</p>
+              {g === "prot" && <p style={{ marginTop: 6 }}>{VEG_NOTE}</p>}
             </div>
           </div>
         ))}
@@ -37,7 +38,7 @@ export function Portions() {
           <HandIcon shape="star" color="var(--free)" />
           <div>
             <h3 style={{ color: "var(--free)" }}>{FREE.name}</h3>
-            <p style={{ marginTop: 4 }}><strong>{FREE.hint} Считается за неделю, без лимита.</strong></p>
+            <p style={{ marginTop: 4 }}><strong>{FREE.hint} Отмечай столько, сколько было, — без лимита.</strong></p>
             <p className="muted">{FREE.why}</p>
             <p style={{ marginTop: 4 }}>Что сюда относится: {FREE.kinds.map((k) => k.toLowerCase()).join("; ")}.</p>
           </div>

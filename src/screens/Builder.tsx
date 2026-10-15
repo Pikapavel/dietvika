@@ -2,7 +2,7 @@
 import { useMemo, useState } from "react";
 import { today as todayIso } from "../dates";
 import { ACTIVITY_LABEL, suggestLevel, type Activity, type Goal, type Sex } from "../nasem";
-import { LEVELS, inviteLink, tableGoals, type Goals, type Plan } from "../plan";
+import { LEVELS, inviteLink, suggestedGoals, type Goals, type Plan } from "../plan";
 import { useToast } from "../components/Toast";
 import { copyText } from "./PlanScreen";
 import { GROUPS, GROUP_IDS, WATER, type GroupId } from "../units";
@@ -20,6 +20,7 @@ export function Builder() {
   const [act, setAct] = useState<Activity>("low");
   const [goal, setGoal] = useState<Goal>("lose");
   const [start, setStart] = useState(todayIso());
+  const [veg, setVeg] = useState(false);
   const [levelOverride, setLevelOverride] = useState<number | null>(null);
   const [goalEdits, setGoalEdits] = useState<Partial<Record<GroupId, string>>>({});
   const [water, setWater] = useState(String(WATER.defaultGoal));
@@ -29,7 +30,8 @@ export function Builder() {
   const valid = A >= 19 && A <= 100 && H >= 120 && H <= 230 && W >= 30 && W <= 300;
   const sug = useMemo(() => (valid ? suggestLevel(sex, act, A, H, W, goal) : null), [valid, sex, act, A, H, W, goal]);
   const level = levelOverride ?? sug?.level ?? 1800;
-  const table = tableGoals(level);
+  // предложенные цели: таблица USDA, у вегетарианца белок ×1,5
+  const table = suggestedGoals(level, veg);
 
   const effective = (g: GroupId) => {
     const v = goalEdits[g];
@@ -41,6 +43,7 @@ export function Builder() {
     const overrides: Partial<Goals> = {};
     for (const g of GROUP_IDS) if (effective(g) !== table[g]) overrides[g] = effective(g);
     const plan: Plan = { v: 1, client: client.trim(), specialist: specialist.trim() || "Вика", kcal: level, start };
+    if (veg) plan.veg = true;
     if (Object.keys(overrides).length) plan.goals = overrides;
     const wn = Math.round(Number(water));
     if (wn > 0 && wn !== WATER.defaultGoal) plan.water = wn;
@@ -106,6 +109,10 @@ export function Builder() {
 
         <div className="card">
           <div className="eyebrow">Цели в день (можно поправить)</div>
+          <label className="check">
+            <input type="checkbox" checked={veg} onChange={(e) => setVeg(e.target.checked)} />
+            <span>Вегетарианец (белок ×1,5)</span>
+          </label>
           <div className="grid3">
             {GROUP_IDS.map((g) => (
               <label className="field" key={g}><span>{GROUPS[g].name}</span>

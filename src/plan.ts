@@ -16,6 +16,8 @@ export interface Plan {
   start: ISODate;
   goals?: Partial<Goals>;
   water?: number;
+  /** вегетарианский план: белок ×1,5 к обычной цели (если Вика не задала число сама) */
+  veg?: boolean;
 }
 // Старые ссылки могли содержать freeLimit — поле игнорируется:
 // у свободного приёма пищи нет лимита (решение Вики 15.10).
@@ -53,9 +55,18 @@ export function tableGoals(kcal: number): Goals {
   };
 }
 
-/** Итоговые дневные цели (таблица + поправки специалиста), в единицах USDA */
+export const VEG_PROTEIN_FACTOR = 1.5;
+
+/** Цели по таблице с учётом вегетарианского плана (белок ×1,5, округление до 0,5) */
+export function suggestedGoals(kcal: number, veg: boolean): Goals {
+  const base = tableGoals(kcal);
+  if (veg) base.prot = Math.round(base.prot * VEG_PROTEIN_FACTOR * 2) / 2;
+  return base;
+}
+
+/** Итоговые дневные цели (таблица, вегетарианский белок, поправки специалиста), в единицах USDA */
 export function planGoals(plan: Plan): Goals {
-  const base = tableGoals(plan.kcal);
+  const base = suggestedGoals(plan.kcal, !!plan.veg);
   for (const g of GROUP_IDS) {
     const o = plan.goals?.[g];
     if (typeof o === "number" && o >= 0) base[g] = o;
@@ -113,6 +124,7 @@ export function sanitizePlan(raw: unknown): Plan | null {
     }
     if (Object.keys(goals).length) plan.goals = goals;
   }
+  if (o.veg === true) plan.veg = true;
   const water = num(o.water, 1, 20);
   if (water !== undefined) plan.water = Math.round(water);
   return plan;

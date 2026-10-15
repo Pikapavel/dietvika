@@ -80,6 +80,7 @@ export function PlanScreen({ data, plan }: { data: AppData; plan: Plan }) {
           <dl className="kv" style={{ margin: 0 }}>
             <dt>Специалист</dt><dd>{plan.specialist}</dd>
             <dt>Старт плана</dt><dd>{dayMonth(plan.start)}</dd>
+            {plan.veg && <><dt>Питание</dt><dd>Вегетарианский план</dd></>}
           </dl>
         </div>
         <div className="card">
