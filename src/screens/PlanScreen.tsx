@@ -6,6 +6,8 @@ import { canvasFile, downloadFile, drawSummary } from "../summaryImage";
 import { storageWorks, KEYS, readRaw, writeRaw } from "../storage";
 import type { AppData } from "../store";
 import { ConfirmDialog, Sheet } from "../components/Sheet";
+import { ReminderSheet } from "../components/ReminderSheet";
+import { savedReminder } from "../reminder";
 import { useToast } from "../components/Toast";
 import { GLASS, DAILY_IDS, GROUPS, plural, portions, toDisplay } from "../units";
 
@@ -47,6 +49,8 @@ export function PlanScreen({ data, plan }: { data: AppData; plan: Plan }) {
   const toast = useToast();
   const [confirm, setConfirm] = useState(false);
   const [summary, setSummary] = useState(false);
+  const [remind, setRemind] = useState(false);
+  const [reminder, setReminder] = useState(savedReminder);
   const [theme, setTheme] = useState<Theme>(savedTheme);
   const goals = planGoals(plan);
   const w = waterGoal(plan);
@@ -105,6 +109,14 @@ export function PlanScreen({ data, plan }: { data: AppData; plan: Plan }) {
         <p className="muted small" style={{ marginTop: -6 }}>Сводка за текущую неделю картинкой: какие группы в норме и чего не хватало. Можно отправить и текстом.</p>
 
         <div className="card">
+          <div className="eyebrow">Напоминание</div>
+          {reminder
+            ? <p data-testid="plan-reminder">Напоминание: {reminder} ✓ <span className="muted small">— если добавили в календарь</span></p>
+            : <p className="muted small">Календарь телефона раз в день напомнит заглянуть в «Что доесть».</p>}
+          <button className="btn secondary block" onClick={() => setRemind(true)}>{reminder ? "Изменить время" : "Напомнить вечером"}</button>
+        </div>
+
+        <div className="card">
           <div className="eyebrow">Тема</div>
           <div className="seg" role="group" aria-label="Тема оформления" style={{ alignSelf: "flex-start" }}>
             {(["auto", "light", "dark"] as Theme[]).map((t) => (
@@ -119,6 +131,7 @@ export function PlanScreen({ data, plan }: { data: AppData; plan: Plan }) {
           <button className="btn danger block" onClick={() => setConfirm(true)}>Сбросить данные</button>
         </div>
       </section>
+      {remind && <ReminderSheet onClose={() => setRemind(false)} onAdded={setReminder} />}
       {summary && (
         <SummarySheet plan={plan} data={data} now={now} toWhom={toWhom} onText={send} onClose={() => setSummary(false)} />
       )}

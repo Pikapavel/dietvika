@@ -33,6 +33,8 @@ export default defineConfig({
       workbox: {
         globPatterns: ["**/*.{js,css,html,svg,png,woff2}"],
         navigateFallback: "index.html",
+        // .ics напоминаний открываются переходом по ссылке — их нельзя подменять на index.html
+        navigateFallbackDenylist: [/\/reminders\//, /\.ics$/],
         runtimeCaching: [
           {
             urlPattern: /^https:\/\/fonts\.(googleapis|gstatic)\.com\/.*/i,

@@ -8,6 +8,8 @@ export const KEYS = {
   weight: PREFIX + "weight",
   onboarded: PREFIX + "onboarded",
   theme: PREFIX + "theme",
+  /** время вечернего напоминания "20:00", если клиент добавлял его в календарь */
+  reminder: PREFIX + "reminder",
 } as const;
 
 const memory = new Map<string, string>();

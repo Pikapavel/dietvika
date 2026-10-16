@@ -255,3 +255,8 @@ tfoot td { font-weight: 700; border-bottom: 0; }
 .cal-legend i.full { background: var(--ok); }
 .cal-legend i.part { background: color-mix(in srgb, var(--ok) 28%, var(--surface)); }
 .cal-legend i.none { box-shadow: inset 0 0 0 1.5px var(--line); }
+
+/* «Напомнить вечером»: время — сетка 5 × 2, ссылка под «Что доесть» */
+.picker.times { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); }
+.picker.times button { padding-inline: 2px; font-size: .9rem; }
+.remind-link { align-self: flex-start; margin-top: -8px; padding-block: 4px; }

@@ -9,6 +9,8 @@ import { Rings } from "../components/Rings";
 import { Sheet } from "../components/Sheet";
 import { useToast } from "../components/Toast";
 import { BangButton, SugarSheet } from "../components/SugarSheet";
+import { ReminderSheet } from "../components/ReminderSheet";
+import { savedReminder } from "../reminder";
 import {
   DAILY_IDS, FREE, GLASS, SUGAR, VEG_NOTE, VEG_WHY, vegProteinOrder, GROUPS, GROUP_IDS, PICKER, WATER, fmt, fromDisplay, handLines, nudgeText, plural,
   portions, portionsAcc, toDisplay, type DailyId, type GroupId,
@@ -17,12 +19,14 @@ import {
 interface Food { g: GroupId | "free"; name: string; hand: string; q: number; grams?: string; note?: string }
 const FOODS = foodsData as Food[];
 
-type Open = GroupId | "water" | "free" | "sugar" | null;
+type Open = GroupId | "water" | "free" | "sugar" | "reminder" | null;
 
 export function Today({ data, plan }: { data: AppData; plan: Plan }) {
   const now = todayIso();
   const [date, setDate] = useState<ISODate>(now);
   const [open, setOpen] = useState<Open>(null);
+  // ссылка «Напомнить вечером» под «Что доесть» — пока напоминание не добавляли
+  const [reminder, setReminder] = useState(savedReminder);
   const isToday = date === now;
   const goals = planGoals(plan);
   const wGoal = waterGoal(plan);
@@ -96,6 +100,10 @@ export function Today({ data, plan }: { data: AppData; plan: Plan }) {
           )
         )}
 
+        {isToday && !reminder && (
+          <button className="link small remind-link" onClick={() => setOpen("reminder")}>Напомнить вечером, что доесть</button>
+        )}
+
         <div className="rows">
           {GROUP_IDS.map((g) => {
             if (g === "leg") return (
@@ -151,7 +159,8 @@ export function Today({ data, plan }: { data: AppData; plan: Plan }) {
         <p className="muted small">Плюс и минус отмечают порцию сразу. Нажми на название группы — там подсказки руками, продукты и список отметок.</p>
       </section>
 
-      {open && open !== "water" && open !== "free" && open !== "sugar" && (
+      {open === "reminder" && <ReminderSheet onClose={() => setOpen(null)} onAdded={setReminder} />}
+      {open && open !== "water" && open !== "free" && open !== "sugar" && open !== "reminder" && (
         <GroupSheet g={open} date={date} isToday={isToday} data={data} goal={open === "leg" ? legGoal : goals[open]} veg={!!plan.veg} onClose={() => setOpen(null)} />
       )}
       {open === "water" && <WaterSheet date={date} isToday={isToday} data={data} goal={wGoal} onClose={() => setOpen(null)} />}
