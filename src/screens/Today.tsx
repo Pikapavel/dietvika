@@ -87,15 +87,15 @@ export function Today({ data, plan }: { data: AppData; plan: Plan }) {
           )
         )}
 
-        <div className="tiles">
-          {GROUP_IDS.map((g) => {
+        <div className="rows">
+          {ROW_ORDER.map((g) => {
             const n = toDisplay(g, eaten[g]);
             const goal = toDisplay(g, goals[g]);
             const done = eaten[g] >= goals[g] - 1e-9;
             return (
-              <Tile key={g} id={g} name={GROUPS[g].name} color={`var(--${g})`}
+              <Tile key={g} id={g} name={GROUPS[g].name} color={`var(--${g})`} emoji={groupEmoji(g, !!plan.veg)}
                 value={fmt(n)} goal={`/${fmt(goal)}`} pct={goal ? n / goal : 0}
-                caption={done ? "кольцо закрыто" : `ещё ${fmt(goal - n)}`}
+                label={done ? "кольцо закрыто" : `ещё ${fmt(goal - n)}`}
                 canMinus={eaten[g] > 0}
                 onOpen={() => setOpen(g)}
                 onPlus={() => data.add(date, g, "Порция", fromDisplay(g, 1))}
@@ -104,17 +104,18 @@ export function Today({ data, plan }: { data: AppData; plan: Plan }) {
               />
             );
           })}
-          <Tile id="water" name={WATER.name} color="var(--water)"
+          <Tile id="water" name={WATER.name} color="var(--water)" emoji="💧"
             value={String(water)} goal={`/${wGoal}`} pct={water / wGoal}
-            caption={water >= wGoal ? "норма воды есть" : `ещё ${wGoal - water} ${plural(wGoal - water, GLASS)}`}
+            sub={`${litres(water)} л / ${litres(wGoal)} л`}
+            label={water >= wGoal ? "норма воды есть" : `ещё ${wGoal - water} ${plural(wGoal - water, GLASS)}`}
             canMinus={water > 0}
             onOpen={() => setOpen("water")}
             onPlus={() => data.add(date, "water", "Стакан воды", 1)}
             onMinus={() => data.minus(date, "water", 1)}
             unitName="стакан воды"
           />
-          <Tile id="free" wide name={FREE.name} color="var(--free)"
-            value={String(free)} goal={isToday ? " сегодня" : " вчера"}
+          <Tile id="free" name={FREE.name} color="var(--free)" emoji="🍰"
+            value={String(free)} goal="" sub={isToday ? "сегодня" : "вчера"}
             canMinus={free > 0}
             onOpen={() => setOpen("free")}
             onPlus={() => data.add(date, "free", FREE.name, 1)}
@@ -141,29 +142,47 @@ export function Today({ data, plan }: { data: AppData; plan: Plan }) {
   );
 }
 
+/** Порядок строк на «Сегодня» (как у Арнольда: каждая группа — своя строка) */
+const ROW_ORDER: GroupId[] = ["veg", "fruit", "grain", "prot", "dairy"];
+
+/** Строка группы (как у Арнольда): эмодзи, название (i) | − счётчик + ; ниже — тонкая полоска */
 function Tile(p: {
-  id: string; name: string; color: string; value: string; goal: string; pct?: number; caption?: string;
-  canMinus: boolean; wide?: boolean; unitName: string;
+  id: string; name: string; color: string; emoji: string; value: string; goal: string; pct?: number;
+  /** подпись под названием (вода: литры; свободный приём: «сегодня») */
+  sub?: string;
+  /** текст для скринридера: «ещё 2», «кольцо закрыто» */
+  label?: string;
+  canMinus: boolean; unitName: string;
   onOpen: () => void; onPlus: () => void; onMinus: () => void;
 }) {
   const width = Math.max(0, Math.min(1, p.pct ?? 0)) * 100;
   return (
-    <div className={p.wide ? "tile wide" : "tile"} data-tile={p.id}>
-      <button className="tname" onClick={p.onOpen} aria-haspopup="dialog">
-        <span>{p.name}</span><span className="info" aria-hidden="true">i</span>
-        <span className="sr-only">: подсказки и продукты</span>
-      </button>
-      <div className="row">
-        <b>{p.value}<span className="muted">{p.goal}</span></b>
-        <span className="pm">
-          <button onClick={p.onMinus} disabled={!p.canMinus} aria-label={`Минус: ${p.unitName}, ${p.name}`}>−</button>
-          <button className="plus" onClick={p.onPlus} aria-label={`Плюс: ${p.unitName}, ${p.name}`} style={{ background: p.color }}>+</button>
-        </span>
+    <div className="gr" data-tile={p.id}>
+      <span className="gemoji" onClick={p.onOpen} aria-hidden="true">{p.emoji}</span>
+      <div className="gmain">
+        <button className="tname" onClick={p.onOpen} aria-haspopup="dialog">
+          <span>{p.name}</span><span className="info" aria-hidden="true">i</span>
+          <span className="sr-only">: подсказки и продукты</span>
+        </button>
+        {p.sub && <small>{p.sub}</small>}
       </div>
+      <button className="pmb" onClick={p.onMinus} disabled={!p.canMinus} aria-label={`Минус: ${p.unitName}, ${p.name}`}>−</button>
+      <b className="gcount" aria-label={`${p.name}: ${p.value}${p.goal ? ` из ${p.goal.slice(1)}` : ""}${p.label ? `, ${p.label}` : ""}`}>
+        {p.value}<span className="muted">{p.goal}</span>
+      </b>
+      <button className="pmb plus" onClick={p.onPlus} aria-label={`Плюс: ${p.unitName}, ${p.name}`} style={{ background: p.color }}>+</button>
       {p.pct !== undefined && <div className="bar" aria-hidden="true"><i style={{ width: `${width}%`, background: p.color }} /></div>}
-      {p.caption && <small>{p.caption}</small>}
     </div>
   );
+}
+
+const EMOJI: Record<GroupId, string> = { veg: "🥦", fruit: "🍓", grain: "🍞", prot: "🍗", dairy: "🥛" };
+function groupEmoji(g: GroupId, veg: boolean): string {
+  return g === "prot" && veg ? "🥚" : EMOJI[g];
+}
+/** стаканы → литры: 0,25 л на стакан, «1,5» */
+function litres(glasses: number): string {
+  return (glasses * WATER.ml / 1000).toLocaleString("ru-RU", { maximumFractionDigits: 2 });
 }
 
 function SheetHead({ eyebrow, title, color, onClose }: { eyebrow: string; title: string; color: string; onClose: () => void }) {

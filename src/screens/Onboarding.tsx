@@ -38,12 +38,13 @@ export function Onboarding({ onDone }: { onDone: () => void }) {
     <div className="slide" key="3">
       <div className="eyebrow">4 из 4</div>
       <h1>Как отмечать</h1>
-      <div className="tile demo-tile" aria-hidden="true">
-        <div className="tname"><span>Белок</span><span className="info">i</span></div>
-        <div className="row"><b>3<span className="muted">/5</span></b>
-          <span className="pm"><button tabIndex={-1}>−</button><button tabIndex={-1} className="plus" style={{ background: "var(--prot)" }}>+</button></span></div>
+      <div className="gr demo-tile" aria-hidden="true">
+        <span className="gemoji">🍗</span>
+        <div className="gmain"><div className="tname"><span>Белок</span><span className="info">i</span></div></div>
+        <button className="pmb" tabIndex={-1}>−</button>
+        <b className="gcount">3<span className="muted">/5</span></b>
+        <button className="pmb plus" tabIndex={-1} style={{ background: "var(--prot)" }}>+</button>
         <div className="bar"><i style={{ width: "60%", background: "var(--prot)" }} /></div>
-        <small>ещё 2</small>
       </div>
       <ul className="stack" style={{ paddingLeft: 18, margin: 0, gap: 8 }}>
         <li><strong>+ и −</strong> добавляют или убирают одну порцию.</li>

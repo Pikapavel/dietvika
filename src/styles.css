@@ -214,3 +214,25 @@ tfoot td { font-weight: 700; border-bottom: 0; }
 .freedays b { font-family: var(--display); font-size: .95rem; font-variant-numeric: tabular-nums; }
 .freedays span { font-size: .72rem; color: var(--muted); }
 .freedays span.today { color: var(--ink); font-weight: 700; }
+
+/* «Сегодня»: каждая группа — своя карточка-строка (как у Арнольда) */
+.rows { display: flex; flex-direction: column; gap: 8px; }
+.gr { background: var(--surface); border-radius: 16px; padding: 10px 10px 10px 12px; display: grid; grid-template-columns: 30px minmax(0, 1fr) 40px auto 40px; grid-template-areas: "e m minus c plus" "bar bar bar bar bar"; align-items: center; column-gap: 8px; row-gap: 8px; }
+.gemoji { grid-area: e; font-size: 1.45rem; line-height: 1; text-align: center; cursor: pointer; user-select: none; }
+.gmain { grid-area: m; min-width: 0; display: flex; flex-direction: column; gap: 1px; }
+.gmain .tname { display: block; width: auto; align-self: flex-start; min-height: 0; padding: 6px 0; line-height: 1.25; }
+.gmain .info { display: inline-flex; vertical-align: 1px; margin-left: 6px; width: 18px; height: 18px; font-size: .65rem; }
+.gmain small { color: var(--muted); font-size: .76rem; line-height: 1.2; margin-top: -4px; padding-bottom: 2px; }
+.pmb { border: 0; width: 40px; height: 40px; border-radius: 12px; background: var(--track); font-size: 1.2rem; font-weight: 700; line-height: 1; display: inline-flex; align-items: center; justify-content: center; padding: 0; }
+.gr .pmb:first-of-type { grid-area: minus; }
+.pmb.plus { grid-area: plus; color: var(--on-color); }
+.pmb:disabled { opacity: .4; cursor: default; }
+.gcount { grid-area: c; min-width: 40px; font-family: var(--display); font-size: 1rem; font-variant-numeric: tabular-nums; white-space: nowrap; text-align: center; }
+.gcount .muted { font-size: .82rem; font-weight: 500; }
+.gr .bar { grid-area: bar; height: 4px; }
+@media (max-width: 374px) {
+  .gr { column-gap: 6px; padding-inline: 10px 8px; grid-template-columns: 26px minmax(0, 1fr) 40px auto 40px; }
+  .gemoji { font-size: 1.3rem; }
+  .gcount { font-size: .92rem; }
+  .gcount .muted { font-size: .76rem; }
+}
