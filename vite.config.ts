@@ -32,9 +32,11 @@ export default defineConfig({
       },
       workbox: {
         globPatterns: ["**/*.{js,css,html,svg,png,woff2}"],
+        // лендинг start/ живёт отдельно от приложения и в офлайн-кэш не попадает
+        globIgnores: ["start/**"],
         navigateFallback: "index.html",
-        // .ics напоминаний открываются переходом по ссылке — их нельзя подменять на index.html
-        navigateFallbackDenylist: [/\/reminders\//, /\.ics$/],
+        // .ics напоминаний, APK и лендинг открываются переходом по ссылке — их нельзя подменять на index.html
+        navigateFallbackDenylist: [/\/reminders\//, /\.ics$/, /\.apk$/, /\/start(\/|$)/],
         runtimeCaching: [
           {
             urlPattern: /^https:\/\/fonts\.(googleapis|gstatic)\.com\/.*/i,
