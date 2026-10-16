@@ -1,13 +1,13 @@
 import { Rings } from "../components/Rings";
 
 export function Welcome({ onDemo }: { onDemo: () => void }) {
-  const p = { fruit: 0.8, veg: 0.65, grain: 0.9, prot: 0.55, dairy: 0.75 };
+  const p = { fv: 0.8, grain: 0.9, prot: 0.55, dairy: 0.75 };
   return (
     <div className="welcome">
       <Rings progress={p} size={96} label="DietVika" />
       <div className="stack" style={{ gap: 8 }}>
         <h1>DietVika</h1>
-        <p>Отмечай порции методом рук: фрукты, овощи, зерновые, белок и молочное. Без калорий и весов.</p>
+        <p>Отмечай порции методом рук: фрукты и овощи, бобовые, зерновые, белок и молочное. Без калорий и весов.</p>
       </div>
       <div className="card">
         <strong>Нужна ссылка от специалиста</strong>

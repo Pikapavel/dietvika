@@ -1,12 +1,13 @@
-import { useState } from "react";
-import { dayMonth, today as todayIso } from "../dates";
-import { LEVELS, levelNumber, planGoals, waterGoal, type Plan } from "../plan";
+import { useEffect, useRef, useState } from "react";
+import { dayMonth, today as todayIso, weekStart, type ISODate } from "../dates";
+import { LEVELS, legWeekGoal, levelNumber, planGoals, waterGoal, type Plan } from "../plan";
 import { summaryText } from "../stats";
+import { canvasFile, downloadFile, drawSummary } from "../summaryImage";
 import { storageWorks, KEYS, readRaw, writeRaw } from "../storage";
 import type { AppData } from "../store";
-import { ConfirmDialog } from "../components/Sheet";
+import { ConfirmDialog, Sheet } from "../components/Sheet";
 import { useToast } from "../components/Toast";
-import { GLASS, GROUPS, GROUP_IDS, plural, portions, toDisplay } from "../units";
+import { GLASS, DAILY_IDS, GROUPS, plural, portions, toDisplay } from "../units";
 
 type Theme = "auto" | "light" | "dark";
 
@@ -45,11 +46,15 @@ export async function copyText(text: string): Promise<boolean> {
 export function PlanScreen({ data, plan }: { data: AppData; plan: Plan }) {
   const toast = useToast();
   const [confirm, setConfirm] = useState(false);
+  const [summary, setSummary] = useState(false);
   const [theme, setTheme] = useState<Theme>(savedTheme);
   const goals = planGoals(plan);
   const w = waterGoal(plan);
   const now = todayIso();
 
+  const toWhom = plan.specialist === "Вика" ? "Вике" : "специалисту";
+
+  /** Текст сводки: поделиться или скопировать (запасной путь к картинке) */
   const send = async () => {
     const text = summaryText(plan, data.log, data.weights, now);
     if (typeof navigator.share === "function") {
@@ -85,18 +90,19 @@ export function PlanScreen({ data, plan }: { data: AppData; plan: Plan }) {
         </div>
         <div className="card">
           <div className="eyebrow">Порций в день</div>
-          {GROUP_IDS.map((g) => (
+          {DAILY_IDS.map((g) => (
             <div className="grow" key={g}>
               <span><span className="dot" style={{ background: `var(--${g})` }} />{GROUPS[g].name}</span>
               <span className="num">{portions(toDisplay(g, goals[g]))}</span>
             </div>
           ))}
+          <div className="grow"><span><span className="dot" style={{ background: "var(--leg)" }} />{GROUPS.leg.name}</span><span className="num">{portions(legWeekGoal(plan))} в неделю</span></div>
           <div className="grow"><span><span className="dot" style={{ background: "var(--water)" }} />Вода</span><span className="num">{w} {plural(w, GLASS)}</span></div>
           <p className="muted small">План меняет специалист: пришлёт новую ссылку — открой её на этом телефоне.</p>
         </div>
 
-        <button className="btn block" onClick={send}>Отправить сводку {plan.specialist === "Вика" ? "Вике" : "специалисту"}</button>
-        <p className="muted small" style={{ marginTop: -6 }}>Сводка за текущую неделю: средние порции по группам, вода, вес и свободные приёмы пищи.</p>
+        <button className="btn block" onClick={() => setSummary(true)}>Отправить сводку {toWhom}</button>
+        <p className="muted small" style={{ marginTop: -6 }}>Сводка за текущую неделю картинкой: какие группы в норме и чего не хватало. Можно отправить и текстом.</p>
 
         <div className="card">
           <div className="eyebrow">Тема</div>
@@ -113,6 +119,9 @@ export function PlanScreen({ data, plan }: { data: AppData; plan: Plan }) {
           <button className="btn danger block" onClick={() => setConfirm(true)}>Сбросить данные</button>
         </div>
       </section>
+      {summary && (
+        <SummarySheet plan={plan} data={data} now={now} toWhom={toWhom} onText={send} onClose={() => setSummary(false)} />
+      )}
       {confirm && (
         <ConfirmDialog
           title="Сбросить все данные?"
@@ -123,5 +132,52 @@ export function PlanScreen({ data, plan }: { data: AppData; plan: Plan }) {
         />
       )}
     </>
+  );
+}
+
+/** Превью картинки-сводки перед отправкой: PNG через «Поделиться», иначе скачать; текст — запасной путь */
+function SummarySheet({ plan, data, now, toWhom, onText, onClose }: {
+  plan: Plan; data: AppData; now: ISODate; toWhom: string; onText: () => void; onClose: () => void;
+}) {
+  const toast = useToast();
+  const canvas = useRef<HTMLCanvasElement>(null);
+  const [file, setFile] = useState<File | null>(null);
+  useEffect(() => {
+    let live = true;
+    (async () => {
+      if (!canvas.current) return;
+      await drawSummary(canvas.current, plan, data.log, now);
+      const f = await canvasFile(canvas.current, `dietvika-svodka-${weekStart(now)}.png`);
+      if (live) setFile(f);
+    })();
+    return () => { live = false; };
+  }, [plan, data.log, now]);
+
+  const sendImage = async () => {
+    if (!file) return;
+    if (typeof navigator.canShare === "function" && navigator.canShare({ files: [file] })) {
+      try {
+        await navigator.share({ files: [file], title: "DietVika — сводка за неделю" });
+        return;
+      } catch (e) {
+        if ((e as Error)?.name === "AbortError") return;
+      }
+    }
+    downloadFile(file);
+    toast(`Картинка сохранена — отправь её ${toWhom} в чате`);
+  };
+
+  return (
+    <Sheet label="Сводка за неделю" onClose={onClose}>
+      <div className="ghead">
+        <div><div className="eyebrow">Сводка за неделю</div><h2>Картинка для {toWhom === "Вике" ? "Вики" : "специалиста"}</h2></div>
+        <button className="close" onClick={onClose} aria-label="Закрыть">×</button>
+      </div>
+      <canvas ref={canvas} className="summary-img" data-testid="summary-canvas" role="img"
+        aria-label="Превью сводки: группы в норме и чего не хватало за неделю" />
+      <button className="btn block" onClick={sendImage} disabled={!file}>Отправить картинку</button>
+      <button className="btn secondary block" onClick={onText}>Отправить текстом</button>
+      <p className="muted small">Картинка без калорий: по каждой группе — сколько дней цель была набрана. В тексте — средние порции, вода и вес.</p>
+    </Sheet>
   );
 }

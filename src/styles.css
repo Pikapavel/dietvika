@@ -1,7 +1,7 @@
 /* Токены и вид — из прототипа dietvika-prototype.html */
 :root {
   --bg: #EEF3EF; --surface: #FFFFFF; --ink: #1D2A24; --muted: #5E6E66; --line: #D6E0DA; --track: #E1E9E4;
-  --fruit: #E2483D; --veg: #3F9B5A; --grain: #D98B1F; --prot: #7A4BB3; --dairy: #3A86C8; --water: #1F9AA0; --free: #D95C9A;
+  --fv: #3F9B5A; --leg: #96643A; --grain: #D98B1F; --prot: #7A4BB3; --dairy: #3A86C8; --water: #1F9AA0; --free: #D95C9A;
   --ok: #3F9B5A; --warn: #D98B1F; --bad: #D1453B; --on-color: #FFFFFF; --focus: #3A86C8;
   --display: "Unbounded", "Arial Black", system-ui, sans-serif;
   --body: "Manrope", system-ui, -apple-system, "Segoe UI", sans-serif;
@@ -11,14 +11,14 @@
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
     --bg: #121915; --surface: #1B241F; --ink: #E6EEE9; --muted: #9AABA2; --line: #2C3832; --track: #26312B;
-    --fruit: #F0675C; --veg: #5DBB78; --grain: #EDA542; --prot: #A27BDA; --dairy: #5EA6E3; --water: #4CC2C6; --free: #EC7DB4;
+    --fv: #5DBB78; --leg: #CC9A68; --grain: #EDA542; --prot: #A27BDA; --dairy: #5EA6E3; --water: #4CC2C6; --free: #EC7DB4;
     --ok: #5DBB78; --warn: #EDA542; --bad: #F0675C; --on-color: #10140F; --focus: #5EA6E3;
     color-scheme: dark;
   }
 }
 :root[data-theme="dark"] {
   --bg: #121915; --surface: #1B241F; --ink: #E6EEE9; --muted: #9AABA2; --line: #2C3832; --track: #26312B;
-  --fruit: #F0675C; --veg: #5DBB78; --grain: #EDA542; --prot: #A27BDA; --dairy: #5EA6E3; --water: #4CC2C6; --free: #EC7DB4;
+  --fv: #5DBB78; --leg: #CC9A68; --grain: #EDA542; --prot: #A27BDA; --dairy: #5EA6E3; --water: #4CC2C6; --free: #EC7DB4;
   --ok: #5DBB78; --warn: #EDA542; --bad: #F0675C; --on-color: #10140F; --focus: #5EA6E3;
   color-scheme: dark;
 }
@@ -236,3 +236,22 @@ tfoot td { font-weight: 700; border-bottom: 0; }
   .gcount { font-size: .92rem; }
   .gcount .muted { font-size: .76rem; }
 }
+
+/* сводка картинкой: превью в шторке */
+.summary-img { display: block; width: min(100%, 260px); height: auto; aspect-ratio: 1080 / 1350; margin-inline: auto; border-radius: 14px; box-shadow: 0 2px 10px rgb(0 0 0 / .12); background: #EEF3EF; }
+
+/* календарь ровных дней: зелёный — все группы, светлый — что-то отмечено, пусто — ничего; красного нет */
+.cal-month { font-size: 1rem; margin-top: 2px; }
+.cal { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 5px; text-align: center; }
+.cal-wd { font-size: .7rem; color: var(--muted); font-weight: 700; padding-bottom: 2px; }
+.cal-day { border: 0; padding: 0; aspect-ratio: 1; min-height: 36px; border-radius: 10px; font-size: .85rem; font-weight: 600; font-variant-numeric: tabular-nums; display: flex; align-items: center; justify-content: center; background: transparent; box-shadow: inset 0 0 0 1.5px var(--line); color: var(--ink); }
+.cal-day.full { background: var(--ok); color: var(--on-color); box-shadow: none; font-weight: 700; }
+.cal-day.part { background: color-mix(in srgb, var(--ok) 28%, var(--surface)); box-shadow: none; }
+.cal-day.future { box-shadow: none; color: var(--muted); opacity: .45; }
+.cal-day.today { outline: 2px solid var(--ink); outline-offset: 1px; }
+.cal-legend { display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: .78rem; color: var(--muted); }
+.cal-legend span { display: inline-flex; align-items: center; gap: 6px; }
+.cal-legend i { width: 14px; height: 14px; border-radius: 4px; display: inline-block; }
+.cal-legend i.full { background: var(--ok); }
+.cal-legend i.part { background: color-mix(in srgb, var(--ok) 28%, var(--surface)); }
+.cal-legend i.none { box-shadow: inset 0 0 0 1.5px var(--line); }

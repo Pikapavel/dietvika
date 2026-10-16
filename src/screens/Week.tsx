@@ -4,8 +4,9 @@ import { streak, sumDay } from "../log";
 import type { Plan } from "../plan";
 import { lastWeight, weekStats } from "../stats";
 import type { AppData } from "../store";
+import { MonthCalendar } from "../components/MonthCalendar";
 import { useToast } from "../components/Toast";
-import { FREE, GLASS, GROUPS, GROUP_IDS, fmt, plural, toDisplay } from "../units";
+import { FREE, GLASS, GROUPS, DAILY_IDS, fmt, plural, toDisplay } from "../units";
 
 export function Week({ data, plan }: { data: AppData; plan: Plan }) {
   const now = todayIso();
@@ -13,9 +14,9 @@ export function Week({ data, plan }: { data: AppData; plan: Plan }) {
   const s = weekStats(plan, data.log, anchor, now);
   const isCurrent = weekStart(anchor) === weekStart(now);
   const series = streak(data.log, now, s.goals);
-  const weakest = s.logged.length ? [...GROUP_IDS].sort((a, b) => s.ratio[a] - s.ratio[b])[0] : null;
+  const weakest = s.logged.length ? [...DAILY_IDS].sort((a, b) => s.ratio[a] - s.ratio[b])[0] : null;
 
-  // столбцы: каждая группа даёт до 1/5 высоты
+  // столбцы: каждая группа даёт до 1/N высоты
   const W = 320, H = 150, bw = W / 7;
   return (
     <>
@@ -41,9 +42,9 @@ export function Week({ data, plan }: { data: AppData; plan: Plan }) {
               return (
                 <g key={d}>
                   <rect x={x} y={10} width={w} height={H - 30} rx="4" fill="var(--track)" opacity={future ? 0.4 : 1} />
-                  {!future && GROUP_IDS.map((g) => {
+                  {!future && DAILY_IDS.map((g) => {
                     const goal = s.goals[g];
-                    const h = (goal ? Math.min(sumDay(data.log, d, g) / goal, 1) : 0) * (H - 30) / 5;
+                    const h = (goal ? Math.min(sumDay(data.log, d, g) / goal, 1) : 0) * (H - 30) / DAILY_IDS.length;
                     y -= h;
                     return h > 0 ? <rect key={g} x={x} y={y} width={w} height={h} fill={`var(--${g})`} /> : null;
                   })}
@@ -52,7 +53,7 @@ export function Week({ data, plan }: { data: AppData; plan: Plan }) {
               );
             })}
           </svg>
-          <p className="muted small">Полный столбец до пунктира — все 5 групп закрыты.</p>
+          <p className="muted small">Полный столбец до пунктира — все группы дня закрыты.</p>
         </div>
 
         <div className="stats">
@@ -60,6 +61,8 @@ export function Week({ data, plan }: { data: AppData; plan: Plan }) {
           <div><b>{series}</b><span>{plural(series, ["день", "дня", "дней"])} подряд — серия</span></div>
           <div style={{ gridColumn: "1 / -1" }}><b>{fmt(s.waterAvg)}<span className="muted small">/{s.waterGoal}</span></b><span>{plural(s.waterGoal, GLASS)} воды в среднем</span></div>
         </div>
+
+        <MonthCalendar log={data.log} plan={plan} now={now} />
 
         <div className="card" data-testid="free-week">
           <div className="weekbar">
@@ -77,7 +80,7 @@ export function Week({ data, plan }: { data: AppData; plan: Plan }) {
 
         <div className="card">
           <div className="eyebrow">В среднем за день · {s.logged.length} {plural(s.logged.length, ["день", "дня", "дней"])} с отметками</div>
-          {GROUP_IDS.map((g) => {
+          {DAILY_IDS.map((g) => {
             const pct = Math.round(s.ratio[g] * 100);
             return (
               <div className="grow" key={g}>
@@ -87,6 +90,11 @@ export function Week({ data, plan }: { data: AppData; plan: Plan }) {
               </div>
             );
           })}
+          <div className="grow" data-testid="leg-week">
+            <span><span className="dot" style={{ background: "var(--leg)" }} />{GROUPS.leg.name}</span>
+            <span className="num">{fmt(s.leg)} из {s.legGoal} за неделю</span>
+            <div className="bar" aria-hidden="true"><i style={{ width: `${s.legGoal ? Math.min(100, (s.leg / s.legGoal) * 100) : 0}%`, background: "var(--leg)" }} /></div>
+          </div>
         </div>
 
         {weakest && s.ratio[weakest] < 1 && (

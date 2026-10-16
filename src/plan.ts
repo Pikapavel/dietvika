@@ -3,10 +3,11 @@
 
 import plansData from "./data/plans-usda-2020.json";
 import { addDays, isISODate, today, type ISODate } from "./dates";
-import { GROUP_IDS, WATER, type GroupId } from "./units";
+import { DAILY_IDS, WATER, type DailyId } from "./units";
 import { KEYS, readJSON, writeJSON } from "./storage";
 
-export type Goals = Record<GroupId, number>;
+/** Дневные цели, в единицах USDA. Бобовые — отдельно, за неделю (legWeek). */
+export type Goals = Record<DailyId, number>;
 
 export interface Plan {
   v: 1;
@@ -18,9 +19,13 @@ export interface Plan {
   water?: number;
   /** вегетарианский план: белок ×1,5 к обычной цели (если Вика не задала число сама) */
   veg?: boolean;
+  /** бобовые: порций за неделю (0–14), без поля — LEG_WEEK_DEFAULT */
+  legWeek?: number;
 }
 // Старые ссылки могли содержать freeLimit — поле игнорируется:
 // у свободного приёма пищи нет лимита (решение Вики 15.10).
+// Старые ссылки с goals.fruit / goals.veg: цель fv = их сумма (недостающее — из таблицы),
+// не меньше 5 (решение Вики 16.10). Новые ссылки пишут goals.fv.
 
 interface UsdaPlan {
   kcal: number;
@@ -43,15 +48,26 @@ export function snapLevel(kcal: number): number {
   return best;
 }
 
+/** Фрукты и овощи — минимум 5 порций в день (5 a day, ВОЗ) */
+export const FV_MIN = 5;
+
+/** Цель «Фрукты и овощи»: сумма фруктов и овощей, округление до 0,5, не меньше 5 */
+export function fvGoal(fruitCup: number, vegCup: number): number {
+  return Math.max(FV_MIN, Math.round((fruitCup + vegCup) * 2) / 2);
+}
+
+function usdaDaily(kcal: number): UsdaPlan["daily"] {
+  return PLANS.find((x) => x.kcal === snapLevel(kcal))!.daily;
+}
+
 /** Цели по таблице USDA для уровня */
 export function tableGoals(kcal: number): Goals {
-  const p = PLANS.find((x) => x.kcal === snapLevel(kcal))!;
+  const d = usdaDaily(kcal);
   return {
-    fruit: p.daily.fruit_cup,
-    veg: p.daily.veg_cup,
-    grain: p.daily.grain_ozeq,
-    prot: p.daily.protein_ozeq,
-    dairy: p.daily.dairy_cup,
+    fv: fvGoal(d.fruit_cup, d.veg_cup),
+    grain: d.grain_ozeq,
+    prot: d.protein_ozeq,
+    dairy: d.dairy_cup,
   };
 }
 
@@ -67,11 +83,18 @@ export function suggestedGoals(kcal: number, veg: boolean): Goals {
 /** Итоговые дневные цели (таблица, вегетарианский белок, поправки специалиста), в единицах USDA */
 export function planGoals(plan: Plan): Goals {
   const base = suggestedGoals(plan.kcal, !!plan.veg);
-  for (const g of GROUP_IDS) {
+  for (const g of DAILY_IDS) {
     const o = plan.goals?.[g];
     if (typeof o === "number" && o >= 0) base[g] = o;
   }
   return base;
+}
+
+/** Бобовые по умолчанию — 3 порции в неделю (решение Вики 16.10) */
+export const LEG_WEEK_DEFAULT = 3;
+
+export function legWeekGoal(plan: Plan): number {
+  return plan.legWeek ?? LEG_WEEK_DEFAULT;
 }
 
 export function waterGoal(plan: Plan): number {
@@ -118,13 +141,22 @@ export function sanitizePlan(raw: unknown): Plan | null {
   };
   if (o.goals && typeof o.goals === "object") {
     const goals: Partial<Goals> = {};
-    for (const g of GROUP_IDS) {
-      const v = num((o.goals as Record<string, unknown>)[g], 0, 20);
+    const og = o.goals as Record<string, unknown>;
+    for (const g of DAILY_IDS) {
+      const v = num(og[g], 0, 20);
       if (v !== undefined) goals[g] = v;
+    }
+    // старая ссылка: отдельные фрукты и овощи → одна цель fv
+    const fruit = num(og.fruit, 0, 20), veg = num(og.veg, 0, 20);
+    if (goals.fv === undefined && (fruit !== undefined || veg !== undefined)) {
+      const t = usdaDaily(plan.kcal);
+      goals.fv = fvGoal(fruit ?? t.fruit_cup, veg ?? t.veg_cup);
     }
     if (Object.keys(goals).length) plan.goals = goals;
   }
   if (o.veg === true) plan.veg = true;
+  const legWeek = num(o.legWeek, 0, 14);
+  if (legWeek !== undefined) plan.legWeek = Math.round(legWeek);
   const water = num(o.water, 1, 20);
   if (water !== undefined) plan.water = Math.round(water);
   return plan;

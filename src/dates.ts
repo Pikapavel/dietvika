@@ -46,6 +46,7 @@ export function weekDays(s: ISODate): ISODate[] {
 export const WEEKDAY_SHORT = ["Пн", "Вт", "Ср", "Чт", "Пт", "Сб", "Вс"];
 
 const MONTHS_GEN = ["января", "февраля", "марта", "апреля", "мая", "июня", "июля", "августа", "сентября", "октября", "ноября", "декабря"];
+const MONTHS = ["Январь", "Февраль", "Март", "Апрель", "Май", "Июнь", "Июль", "Август", "Сентябрь", "Октябрь", "Ноябрь", "Декабрь"];
 const WEEKDAYS = ["воскресенье", "понедельник", "вторник", "среда", "четверг", "пятница", "суббота"];
 
 /** "Среда, 15 октября" */
@@ -72,4 +73,28 @@ export function rangeLabel(a: ISODate, b: ISODate): string {
   const da = fromISO(a), db = fromISO(b);
   if (da.getMonth() === db.getMonth()) return `${da.getDate()}–${db.getDate()} ${MONTHS_GEN[db.getMonth()]}`;
   return `${dayMonth(a)} – ${dayMonth(b)}`;
+}
+
+/** Первое число месяца, в который попадает дата: "2026-10-01" */
+export function monthStart(s: ISODate): ISODate {
+  return s.slice(0, 8) + "01";
+}
+
+/** Сдвиг на n месяцев от первого числа */
+export function addMonths(first: ISODate, n: number): ISODate {
+  const d = fromISO(first);
+  return toISO(new Date(d.getFullYear(), d.getMonth() + n, 1));
+}
+
+/** Все дни месяца по порядку */
+export function monthDays(first: ISODate): ISODate[] {
+  const d = fromISO(first);
+  const n = new Date(d.getFullYear(), d.getMonth() + 1, 0).getDate();
+  return Array.from({ length: n }, (_, i) => addDays(first, i));
+}
+
+/** "Октябрь 2026" */
+export function monthLabel(first: ISODate): string {
+  const d = fromISO(first);
+  return `${MONTHS[d.getMonth()]} ${d.getFullYear()}`;
 }

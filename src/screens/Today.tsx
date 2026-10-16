@@ -1,8 +1,8 @@
 import { useMemo, useState } from "react";
 import foodsData from "../data/foods.json";
 import { addDays, longDate, today as todayIso, type ISODate } from "../dates";
-import { sumDay, type Entry, type LogGroup } from "../log";
-import { planGoals, waterGoal, type Plan } from "../plan";
+import { sumDay, sumWeek, type Entry, type LogGroup } from "../log";
+import { legWeekGoal, planGoals, waterGoal, type Plan } from "../plan";
 import type { AppData } from "../store";
 import { HandIcon } from "../components/HandIcon";
 import { Rings } from "../components/Rings";
@@ -10,8 +10,8 @@ import { Sheet } from "../components/Sheet";
 import { useToast } from "../components/Toast";
 import { BangButton, SugarSheet } from "../components/SugarSheet";
 import {
-  FREE, GLASS, SUGAR, VEG_NOTE, VEG_WHY, vegProteinOrder, GROUPS, GROUP_IDS, PICKER, WATER, fmt, fromDisplay, handLines, nudgeText, plural,
-  portions, portionsAcc, toDisplay, type GroupId,
+  DAILY_IDS, FREE, GLASS, SUGAR, VEG_NOTE, VEG_WHY, vegProteinOrder, GROUPS, GROUP_IDS, PICKER, WATER, fmt, fromDisplay, handLines, nudgeText, plural,
+  portions, portionsAcc, toDisplay, type DailyId, type GroupId,
 } from "../units";
 
 interface Food { g: GroupId | "free"; name: string; hand: string; q: number; grams?: string; note?: string }
@@ -34,14 +34,18 @@ export function Today({ data, plan }: { data: AppData; plan: Plan }) {
     return r;
   }, [log, date]);
   const progress = useMemo(() => {
-    const r = {} as Record<GroupId, number>;
-    for (const g of GROUP_IDS) r[g] = goals[g] > 0 ? eaten[g] / goals[g] : 1;
+    const r = {} as Record<DailyId, number>;
+    for (const g of DAILY_IDS) r[g] = goals[g] > 0 ? eaten[g] / goals[g] : 1;
     return r;
   }, [eaten, goals]);
-  const closed = GROUP_IDS.filter((g) => progress[g] >= 1 - 1e-9).length;
+  const closed = DAILY_IDS.filter((g) => progress[g] >= 1 - 1e-9).length;
+  // бобовые — счётчик за неделю (пн–вс) выбранного дня
+  const legWeek = sumWeek(log, date, "leg");
+  const legGoal = legWeekGoal(plan);
 
-  // «Что доесть»: группа дальше всех от цели
-  const behind = GROUP_IDS.filter((g) => progress[g] < 1 - 1e-9).sort((a, b) => progress[a] - progress[b])[0];
+  // «Что доесть»: дневная группа дальше всех от цели; если день закрыт — бобовые до цели недели
+  const behind = DAILY_IDS.filter((g) => progress[g] < 1 - 1e-9).sort((a, b) => progress[a] - progress[b])[0];
+  const legLeft = legGoal - legWeek;
 
   const water = sumDay(log, date, "water");
   // свободный приём пищи — счётчик за выбранный день, без цели и лимита
@@ -64,10 +68,10 @@ export function Today({ data, plan }: { data: AppData; plan: Plan }) {
         {!isToday && <div className="banner">Заполняешь вчерашний день: все отметки попадут во вчера.</div>}
 
         <div className="hero">
-          <Rings progress={progress} size={136} label={`Закрыто колец: ${closed} из 5`} />
+          <Rings progress={progress} size={136} label={`Закрыто колец: ${closed} из ${DAILY_IDS.length}`} />
           <div className="legend">
-            <div><strong>Закрыто колец</strong><strong>{closed} из 5</strong></div>
-            {GROUP_IDS.map((g) => (
+            <div><strong>Закрыто колец</strong><strong>{closed} из {DAILY_IDS.length}</strong></div>
+            {DAILY_IDS.map((g) => (
               <div key={g}>
                 <span><span className="dot" style={{ background: `var(--${g})` }} />{GROUPS[g].name}</span>
                 <span>{fmt(toDisplay(g, eaten[g]))}/{fmt(toDisplay(g, goals[g]))}</span>
@@ -82,13 +86,30 @@ export function Today({ data, plan }: { data: AppData; plan: Plan }) {
               <span className="dot" style={{ background: `var(--${behind})` }} />
               <div><strong>Что доесть.</strong> {nudgeText(behind, goals[behind] - eaten[behind], !!plan.veg)}</div>
             </div>
+          ) : legLeft > 1e-9 ? (
+            <div className="nudge" role="status">
+              <span className="dot" style={{ background: "var(--leg)" }} />
+              <div><strong>Кольца дня закрыты.</strong> {nudgeText("leg", legLeft)}</div>
+            </div>
           ) : (
             <div className="nudge" role="status"><span className="dot" style={{ background: "var(--ok)" }} /><div>Все кольца закрыты. Отличный день!</div></div>
           )
         )}
 
         <div className="rows">
-          {ROW_ORDER.map((g) => {
+          {GROUP_IDS.map((g) => {
+            if (g === "leg") return (
+              <Tile key={g} id={g} name={GROUPS[g].name} color="var(--leg)" emoji={EMOJI[g]}
+                value={fmt(legWeek)} goal={legGoal ? `/${legGoal}` : ""} pct={legGoal ? legWeek / legGoal : undefined}
+                sub="за неделю"
+                label={legGoal && legWeek >= legGoal ? "цель недели есть" : legGoal ? `ещё ${fmt(legGoal - legWeek)} за неделю` : "за неделю"}
+                canMinus={eaten[g] > 0}
+                onOpen={() => setOpen(g)}
+                onPlus={() => data.add(date, g, "Порция", fromDisplay(g, 1))}
+                onMinus={() => data.minus(date, g, fromDisplay(g, 1))}
+                unitName="порция"
+              />
+            );
             const n = toDisplay(g, eaten[g]);
             const goal = toDisplay(g, goals[g]);
             const done = eaten[g] >= goals[g] - 1e-9;
@@ -131,7 +152,7 @@ export function Today({ data, plan }: { data: AppData; plan: Plan }) {
       </section>
 
       {open && open !== "water" && open !== "free" && open !== "sugar" && (
-        <GroupSheet g={open} date={date} isToday={isToday} data={data} goal={goals[open]} veg={!!plan.veg} onClose={() => setOpen(null)} />
+        <GroupSheet g={open} date={date} isToday={isToday} data={data} goal={open === "leg" ? legGoal : goals[open]} veg={!!plan.veg} onClose={() => setOpen(null)} />
       )}
       {open === "water" && <WaterSheet date={date} isToday={isToday} data={data} goal={wGoal} onClose={() => setOpen(null)} />}
       {open === "free" && (
@@ -141,9 +162,6 @@ export function Today({ data, plan }: { data: AppData; plan: Plan }) {
     </>
   );
 }
-
-/** Порядок строк на «Сегодня» (как у Арнольда: каждая группа — своя строка) */
-const ROW_ORDER: GroupId[] = ["veg", "fruit", "grain", "prot", "dairy"];
 
 /** Строка группы (как у Арнольда): эмодзи, название (i) | − счётчик + ; ниже — тонкая полоска */
 function Tile(p: {
@@ -176,7 +194,7 @@ function Tile(p: {
   );
 }
 
-const EMOJI: Record<GroupId, string> = { veg: "🥦", fruit: "🍓", grain: "🍞", prot: "🍗", dairy: "🥛" };
+const EMOJI: Record<GroupId, string> = { fv: "🥦", leg: "🫘", grain: "🍞", prot: "🍗", dairy: "🥛" };
 function groupEmoji(g: GroupId, veg: boolean): string {
   return g === "prot" && veg ? "🥚" : EMOJI[g];
 }
@@ -222,7 +240,8 @@ function GroupSheet({ g, date, isToday, data, goal, veg, onClose }: {
   const [sel, setSel] = useState(1);
   const toast = useToast();
   const color = `var(--${g})`;
-  const n = sumDay(data.log, date, g);
+  // бобовые: в заголовке — сумма за неделю и цель недели
+  const n = g === "leg" ? sumWeek(data.log, date, g) : sumDay(data.log, date, g);
   const groupFoods = FOODS.filter((f) => f.g === g);
   const foods = veg && g === "prot" ? vegProteinOrder(groupFoods) : groupFoods;
   const add = (name: string, usda: number) => {
@@ -231,7 +250,7 @@ function GroupSheet({ g, date, isToday, data, goal, veg, onClose }: {
   };
   return (
     <Sheet label={GROUPS[g].name} onClose={onClose}>
-      <SheetHead eyebrow={`${isToday ? "Сегодня" : "Вчера"} ${fmt(toDisplay(g, n))} из ${fmt(toDisplay(g, goal))}`}
+      <SheetHead eyebrow={`${g === "leg" ? "За неделю" : isToday ? "Сегодня" : "Вчера"} ${fmt(toDisplay(g, n))} из ${fmt(toDisplay(g, goal))}`}
         title={GROUPS[g].name} color={color} onClose={onClose} />
       <div className="hint">
         <HandIcon shape={GROUPS[g].shape} color={color} />

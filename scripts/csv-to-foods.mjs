@@ -8,9 +8,13 @@ const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const src = process.argv[2] ?? resolve(root, "src/data/справочник-продуктов.csv");
 const out = resolve(root, "src/data/foods.json");
 
+// Фрукты и овощи — одна группа fv (16.10); старые названия групп тоже принимаем
 const GROUPS = {
-  "Фрукты": "fruit",
-  "Овощи": "veg",
+  "Фрукты и овощи": "fv",
+  "Фрукты": "fv",
+  "Овощи": "fv",
+  // Бобовые (16.10): меры временные, Вика пришлёт точные числа и список продуктов
+  "Бобовые": "leg",
   "Зерновые": "grain",
   "Белок": "prot",
   "Молочные": "dairy",
@@ -21,7 +25,7 @@ const text = readFileSync(src, "utf8").replace(/^﻿/, "");
 const [header, ...rows] = text.split(/\r?\n/).filter((l) => l.trim());
 if (!header.startsWith("Группа;")) throw new Error("Неожиданный заголовок CSV: " + header);
 
-/** "3 oz-eq" → 3, "≈ 1,5 oz-eq" → 1.5, "1 cup" → 1, "неделя" → 1 */
+/** "3 oz-eq" → 3, "≈ 1,5 oz-eq" → 1.5, "1 cup" → 1, "1 порция" → 1, "неделя" → 1 */
 function parseCount(s, g) {
   if (g === "free") return 1;
   const m = /(\d+(?:[.,]\d+)?)/.exec(s);

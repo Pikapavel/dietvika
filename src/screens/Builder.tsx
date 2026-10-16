@@ -2,10 +2,10 @@
 import { useMemo, useState } from "react";
 import { today as todayIso } from "../dates";
 import { ACTIVITY_LABEL, suggestLevel, type Activity, type Goal, type Sex } from "../nasem";
-import { LEVELS, inviteLink, suggestedGoals, type Goals, type Plan } from "../plan";
+import { LEG_WEEK_DEFAULT, LEVELS, inviteLink, suggestedGoals, type Goals, type Plan } from "../plan";
 import { useToast } from "../components/Toast";
 import { copyText } from "./PlanScreen";
-import { GROUPS, GROUP_IDS, WATER, type GroupId } from "../units";
+import { DAILY_IDS, GROUPS, WATER, type DailyId } from "../units";
 
 const kcal = (n: number) => Math.round(n).toLocaleString("ru-RU");
 
@@ -22,7 +22,8 @@ export function Builder() {
   const [start, setStart] = useState(todayIso());
   const [veg, setVeg] = useState(false);
   const [levelOverride, setLevelOverride] = useState<number | null>(null);
-  const [goalEdits, setGoalEdits] = useState<Partial<Record<GroupId, string>>>({});
+  const [goalEdits, setGoalEdits] = useState<Partial<Record<DailyId, string>>>({});
+  const [legWeek, setLegWeek] = useState(String(LEG_WEEK_DEFAULT));
   const [water, setWater] = useState(String(WATER.defaultGoal));
   const [link, setLink] = useState("");
 
@@ -33,7 +34,7 @@ export function Builder() {
   // предложенные цели: таблица USDA, у вегетарианца белок ×1,5
   const table = suggestedGoals(level, veg);
 
-  const effective = (g: GroupId) => {
+  const effective = (g: DailyId) => {
     const v = goalEdits[g];
     const n = v === undefined || v === "" ? NaN : Number(v.replace(",", "."));
     return Number.isFinite(n) && n >= 0 ? n : table[g];
@@ -41,10 +42,12 @@ export function Builder() {
 
   const make = () => {
     const overrides: Partial<Goals> = {};
-    for (const g of GROUP_IDS) if (effective(g) !== table[g]) overrides[g] = effective(g);
+    for (const g of DAILY_IDS) if (effective(g) !== table[g]) overrides[g] = effective(g);
     const plan: Plan = { v: 1, client: client.trim(), specialist: specialist.trim() || "Вика", kcal: level, start };
     if (veg) plan.veg = true;
     if (Object.keys(overrides).length) plan.goals = overrides;
+    const leg = Math.round(Number(legWeek));
+    if (Number.isFinite(leg) && leg >= 0 && leg <= 14 && legWeek.trim() !== "" && leg !== LEG_WEEK_DEFAULT) plan.legWeek = leg;
     const wn = Math.round(Number(water));
     if (wn > 0 && wn !== WATER.defaultGoal) plan.water = wn;
     setLink(inviteLink(plan));
@@ -114,14 +117,17 @@ export function Builder() {
             <span>Вегетарианец (белок ×1,5)</span>
           </label>
           <div className="grid3">
-            {GROUP_IDS.map((g) => (
+            {DAILY_IDS.map((g) => (
               <label className="field" key={g}><span>{GROUPS[g].name}</span>
                 <input inputMode="decimal" value={goalEdits[g] ?? String(table[g]).replace(".", ",")}
                   onChange={(e) => setGoalEdits({ ...goalEdits, [g]: e.target.value })} /></label>
             ))}
+            <label className="field"><span>Бобовые, в неделю</span>
+              <input inputMode="numeric" value={legWeek} onChange={(e) => setLegWeek(e.target.value)} aria-describedby="leg-hint" /></label>
             <label className="field"><span>Вода, стаканов</span><input inputMode="numeric" value={water} onChange={(e) => setWater(e.target.value)} /></label>
           </div>
-          <p className="muted small">Фрукты, овощи, молочные — в чашках (cup), зерновые и белок — в oz-eq. Клиент видит это как «порции».</p>
+          <p className="muted small">Фрукты и овощи, молочные — в чашках (cup), зерновые и белок — в oz-eq. Клиент видит это как «порции». Фрукты и овощи: сумма по таблице, не меньше 5.</p>
+          <p className="muted small" id="leg-hint">Бобовые — порций за неделю (0–14), 1 порция = ½ кулака варёных фасоли, нута или чечевицы. В белок и овощи не входят.</p>
           <label className="field"><span>Старт плана</span><input type="date" value={start} onChange={(e) => setStart(e.target.value || todayIso())} /></label>
         </div>
 

@@ -1,8 +1,8 @@
 // Журнал отметок по датам: { "2026-10-15": [{g, f, q, t}, ...] }.
 // q — в единицах USDA (cup / oz-eq) для групп, в стаканах для воды, 1 — для свободного приёма пищи.
 
-import { addDays, isISODate, type ISODate } from "./dates";
-import { GROUP_IDS, type GroupId } from "./units";
+import { addDays, isISODate, weekDays, type ISODate } from "./dates";
+import { DAILY_IDS, GROUP_IDS, type GroupId } from "./units";
 import { KEYS, readJSON, writeJSON } from "./storage";
 import type { Goals } from "./plan";
 
@@ -19,6 +19,9 @@ export interface Entry {
 }
 
 export type Log = Record<ISODate, Entry[]>;
+
+/** Старые группы журнала → новые: фрукты и овощи слились в fv (16.10), количество в cup то же */
+const LEGACY_GROUP: Record<string, LogGroup> = { fruit: "fv", veg: "fv" };
 export type Weights = Record<ISODate, number>;
 
 export function loadLog(): Log {
@@ -27,7 +30,10 @@ export function loadLog(): Log {
   if (!raw || typeof raw !== "object") return out;
   for (const [d, arr] of Object.entries(raw as Record<string, unknown>)) {
     if (!isISODate(d) || !Array.isArray(arr)) continue;
-    const list = arr.filter(
+    const list = arr.map((e) => {
+      const g = e && typeof e === "object" ? LEGACY_GROUP[(e as Entry).g] : undefined;
+      return g ? { ...(e as Entry), g } : e;
+    }).filter(
       (e): e is Entry =>
         !!e && typeof e === "object" &&
         LOG_GROUPS.includes((e as Entry).g) &&
@@ -61,13 +67,32 @@ export function sumDay(log: Log, date: ISODate, g: LogGroup): number {
   return (log[date] ?? []).reduce((a, e) => (e.g === g ? a + e.q : a), 0);
 }
 
+/** Сумма за неделю (пн–вс), в которую попадает дата — для бобовых */
+export function sumWeek(log: Log, anyDay: ISODate, g: LogGroup): number {
+  return weekDays(anyDay).reduce((a, d) => a + sumDay(log, d, g), 0);
+}
+
 export function hasEntries(log: Log, date: ISODate): boolean {
   return (log[date] ?? []).length > 0;
 }
 
-/** Все 5 колец закрыты */
+/** Все кольца дня закрыты (дневные группы; бобовые — за неделю, сюда не входят) */
 export function allClosed(log: Log, date: ISODate, goals: Goals): boolean {
-  return GROUP_IDS.every((g) => sumDay(log, date, g) >= goals[g] - 1e-9);
+  return DAILY_IDS.every((g) => sumDay(log, date, g) >= goals[g] - 1e-9);
+}
+
+/** День в календаре ровных дней: все группы дня в норме / что-то отмечено / пусто */
+export type DayLevel = "full" | "part" | "none";
+
+export function dayLevel(log: Log, date: ISODate, goals: Goals): DayLevel {
+  if (!hasEntries(log, date)) return "none";
+  return allClosed(log, date, goals) ? "full" : "part";
+}
+
+/** Самая ранняя дата с отметками (или null) */
+export function firstLogDate(log: Log): ISODate | null {
+  const keys = Object.keys(log).sort();
+  return keys[0] ?? null;
 }
 
 /** Серия дней подряд со всеми кольцами (до сегодня; незакрытый сегодня серию не рвёт) */
