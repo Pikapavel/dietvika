@@ -32,7 +32,7 @@ export function Onboarding({ onDone }: { onDone: () => void }) {
           <div key={name}><HandIcon shape={s} color={c} size={64} /><strong>{name}</strong><span className="muted">{t}</span></div>
         ))}
       </div>
-      <p className="muted small">Размеры порций приблизительны и зависят от продукта. Бобовые — ½ кулака, их считаем за неделю.</p>
+      <p className="muted small">Размеры порций приблизительны и зависят от продукта. Бобовые — 1 кулак, их считаем за неделю.</p>
     </div>,
     <div className="slide" key="2">
       <div className="eyebrow">3 из 4</div>

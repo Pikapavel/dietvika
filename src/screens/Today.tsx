@@ -261,6 +261,7 @@ function GroupSheet({ g, date, isToday, data, goal, veg, onClose }: {
         <div>
           <strong>Одна порция рукой</strong>
           <ul>{handLines(g, veg).map((l) => <li key={l}>{l}</li>)}</ul>
+          {GROUPS[g].benefits && <ul className="muted" style={{ marginTop: 6 }}>{GROUPS[g].benefits.map((b) => <li key={b}>{b}</li>)}</ul>}
           <p className="muted" style={{ marginTop: 6 }}>{veg && g === "prot" ? VEG_WHY : GROUPS[g].why}</p>
           {veg && g === "prot" && <p style={{ marginTop: 6 }}><strong>Вегетарианский план.</strong> {VEG_NOTE}</p>}
         </div>

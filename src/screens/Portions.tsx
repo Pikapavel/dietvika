@@ -25,6 +25,7 @@ export function Portions() {
             <div>
               <h3 style={{ color: `var(--${g})` }}>{GROUPS[g].name}</h3>
               <ul>{handLines(g).map((l) => <li key={l}>{l}</li>)}</ul>
+              {GROUPS[g].benefits && <ul className="muted" style={{ marginTop: 6 }}>{GROUPS[g].benefits.map((b) => <li key={b}>{b}</li>)}</ul>}
               <p className="muted" style={{ marginTop: 6 }}>{GROUPS[g].why}</p>
               {g === "prot" && <p style={{ marginTop: 6 }}>{VEG_NOTE}</p>}
             </div>

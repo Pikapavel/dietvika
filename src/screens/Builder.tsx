@@ -1,7 +1,7 @@
 // #/vika — конструктор ссылки для специалиста. Без входа, только для теста.
 import { useMemo, useState } from "react";
 import { today as todayIso } from "../dates";
-import { ACTIVITY_LABEL, suggestLevel, type Activity, type Goal, type Sex } from "../nasem";
+import { ACTIVITY_LABEL, STATUS_KCAL, STATUS_LABEL, suggestLevel, type Activity, type Goal, type Sex, type Status } from "../nasem";
 import { LEG_WEEK_DEFAULT, LEVELS, inviteLink, suggestedGoals, type Goals, type Plan } from "../plan";
 import { useToast } from "../components/Toast";
 import { copyText } from "./PlanScreen";
@@ -19,6 +19,7 @@ export function Builder() {
   const [weight, setWeight] = useState("70");
   const [act, setAct] = useState<Activity>("low");
   const [goal, setGoal] = useState<Goal>("lose");
+  const [status, setStatus] = useState<Status>("none");
   const [start, setStart] = useState(todayIso());
   const [veg, setVeg] = useState(false);
   const [levelOverride, setLevelOverride] = useState<number | null>(null);
@@ -29,7 +30,8 @@ export function Builder() {
 
   const A = Number(age), H = Number(height), W = Number(weight);
   const valid = A >= 19 && A <= 100 && H >= 120 && H <= 230 && W >= 30 && W <= 300;
-  const sug = useMemo(() => (valid ? suggestLevel(sex, act, A, H, W, goal) : null), [valid, sex, act, A, H, W, goal]);
+  const st: Status = sex === "f" ? status : "none";
+  const sug = useMemo(() => (valid ? suggestLevel(sex, act, A, H, W, goal, st) : null), [valid, sex, act, A, H, W, goal, st]);
   const level = levelOverride ?? sug?.level ?? 1800;
   // предложенные цели: таблица USDA, у вегетарианца белок ×1,5
   const table = suggestedGoals(level, veg);
@@ -62,7 +64,7 @@ export function Builder() {
         <a className="chip" href="#/today">В приложение</a>
       </header>
       <form className="stack" onSubmit={(e) => { e.preventDefault(); make(); }} onChange={reset}>
-        <div className="note">Тестовая версия: только взрослые 19+, без беременности и кормления грудью. Вход не нужен — ссылку может собрать любой.</div>
+        <div className="note">Тестовая версия: только взрослые 19+. Вход не нужен — ссылку может собрать любой.</div>
 
         <div className="card">
           <div className="grid2">
@@ -86,9 +88,17 @@ export function Builder() {
               </select></label>
             <label className="field"><span>Цель</span>
               <select value={goal} onChange={(e) => setGoal(e.target.value as Goal)}>
-                <option value="maintain">Поддержание</option><option value="lose">Снижение веса</option>
+                <option value="maintain">Поддержание</option><option value="lose">Снижение веса</option><option value="gain">Набор мышечной массы</option>
               </select></label>
           </div>
+          {sex === "f" && (
+            <label className="field"><span>Беременность и кормление</span>
+              <select value={status} onChange={(e) => setStatus(e.target.value as Status)}>
+                {(Object.keys(STATUS_LABEL) as Status[]).map((s) => <option key={s} value={s}>{STATUS_LABEL[s]}{STATUS_KCAL[s] ? ` (+${STATUS_KCAL[s]} ккал)` : ""}</option>)}
+              </select></label>
+          )}
+          {st !== "none" && goal === "lose" && <p className="muted small">При беременности и кормлении дефицит не применяем: план считается от расхода с прибавкой.</p>}
+          {goal === "gain" && <p className="muted small">Целевой вес не нужен. Белка при наборе массы обычно больше — поправь «Белок» ниже вручную.</p>}
         </div>
 
         <div className="card">
@@ -96,12 +106,13 @@ export function Builder() {
           {sug ? (
             <>
               <dl className="kv" style={{ margin: 0 }}>
-                <dt>Расход (TEE)</dt><dd>{kcal(sug.tee)} ккал</dd>
+                <dt>Расход (TEE){st !== "none" ? " с прибавкой" : ""}</dt><dd>{kcal(sug.tee)} ккал</dd>
                 <dt>BMR (Mifflin–St Jeor)</dt><dd>{kcal(sug.bmr)} ккал</dd>
-                {goal === "lose" && <><dt>Цель после −500</dt><dd>{kcal(sug.target)} ккал</dd></>}
+                {goal === "lose" && st === "none" && <><dt>Цель после −500</dt><dd>{kcal(sug.target)} ккал</dd></>}
+                {goal === "gain" && st === "none" && <><dt>Цель +10%</dt><dd>{kcal(sug.target)} ккал</dd></>}
                 <dt>Предложенный уровень</dt><dd>{sug.level} ккал</dd>
               </dl>
-              <p className="muted small">{sug.note} Снижение: не ниже BMR и не ниже 1600.</p>
+              <p className="muted small">{sug.note}{goal === "lose" && st === "none" ? " Снижение: не ниже BMR и не ниже 1600." : ""}</p>
             </>
           ) : <p className="muted">Заполни возраст (19+), рост и вес.</p>}
           <label className="field"><span>Уровень плана</span>
@@ -127,7 +138,7 @@ export function Builder() {
             <label className="field"><span>Вода, стаканов</span><input inputMode="numeric" value={water} onChange={(e) => setWater(e.target.value)} /></label>
           </div>
           <p className="muted small">Фрукты и овощи, молочные — в чашках (cup), зерновые и белок — в oz-eq. Клиент видит это как «порции». Фрукты и овощи: сумма по таблице, не меньше 5.</p>
-          <p className="muted small" id="leg-hint">Бобовые — порций за неделю (0–14), 1 порция = ½ кулака варёных фасоли, нута или чечевицы, по умолчанию 4 в неделю. В белок и овощи не входят.</p>
+          <p className="muted small" id="leg-hint">Бобовые — порций за неделю (0–14), 1 порция = 1 кулак варёных фасоли, нута или чечевицы (100–125 г), по умолчанию 4 в неделю. В белок и овощи не входят.</p>
           <label className="field"><span>Старт плана</span><input type="date" value={start} onChange={(e) => setStart(e.target.value || todayIso())} /></label>
         </div>
 

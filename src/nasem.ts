@@ -6,7 +6,19 @@ import { LEVELS, MAX_LEVEL, MIN_LEVEL } from "./plan";
 
 export type Sex = "m" | "f";
 export type Activity = "inactive" | "low" | "active" | "very";
-export type Goal = "maintain" | "lose";
+export type Goal = "maintain" | "lose" | "gain";
+/** Беременность и кормление: прибавка к расходу (IOM/NASEM 2005), снижение веса не применяем */
+export type Status = "none" | "preg2" | "preg3" | "lact1" | "lact2";
+
+export const STATUS_LABEL: Record<Status, string> = {
+  none: "Нет",
+  preg2: "Беременность, II триместр",
+  preg3: "Беременность, III триместр",
+  lact1: "Кормление грудью, 0–6 мес.",
+  lact2: "Кормление грудью, 7–12 мес.",
+};
+// TODO: цифры подтверждает Вика
+export const STATUS_KCAL: Record<Status, number> = { none: 0, preg2: 340, preg3: 452, lact1: 330, lact2: 400 };
 
 export const ACTIVITY_LABEL: Record<Activity, string> = {
   inactive: "Неактивный",
@@ -44,6 +56,8 @@ export function bmrMifflin(sex: Sex, age: number, heightCm: number, weightKg: nu
 
 export const LOSS_DEFICIT = 500;
 export const LOSS_FLOOR = 1600;
+/** Набор мышечной массы: поддержание + 10% */
+export const GAIN_SURPLUS = 0.1;
 
 export interface Suggestion {
   tee: number;
@@ -56,9 +70,20 @@ export interface Suggestion {
 
 const clampLevel = (k: number) => Math.min(MAX_LEVEL, Math.max(MIN_LEVEL, k));
 
-export function suggestLevel(sex: Sex, act: Activity, age: number, h: number, w: number, goal: Goal): Suggestion {
-  const tee = teeNasem(sex, act, age, h, w);
+export function suggestLevel(sex: Sex, act: Activity, age: number, h: number, w: number, goal: Goal, status: Status = "none"): Suggestion {
+  const extra = sex === "f" ? STATUS_KCAL[status] : 0;
+  const tee = teeNasem(sex, act, age, h, w) + extra;
   const bmr = bmrMifflin(sex, age, h, w);
+  if (extra > 0) {
+    const level = clampLevel(Math.round(tee / 200) * 200);
+    return { tee, bmr, target: tee, level: nearest(level), note: `${STATUS_LABEL[status]}: расход + ${extra} ккал, без дефицита, округлено до ближайшего уровня.` };
+  }
+  if (goal === "gain") {
+    const target = tee * (1 + GAIN_SURPLUS);
+    // округляем ВВЕРХ до уровня таблицы, чтобы не потерять профицит
+    const level = clampLevel(Math.ceil(target / 200) * 200);
+    return { tee, bmr, target, level: nearest(level), note: "Набор мышечной массы: расход + 10%, округлено вверх до уровня." };
+  }
   if (goal === "maintain") {
     const level = clampLevel(Math.round(tee / 200) * 200);
     return { tee, bmr, target: tee, level: nearest(level), note: "Поддержание: расход округлён до ближайшего уровня." };
