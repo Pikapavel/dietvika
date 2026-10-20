@@ -1,7 +1,7 @@
 import type React from "react";
 import type { Shape } from "../units";
 
-/** Простые значки мер руками: кулак, ладонь, горсть, стакан, два пальца, капля, звезда */
+/** Простые значки мер руками: кулак, ладонь, горсть, стакан, палец, капля, звезда */
 export function HandIcon({ shape, color, size = 44 }: { shape: Shape; color: string; size?: number }) {
   const paths: Record<Shape, React.ReactElement> = {
     fist: (
@@ -26,10 +26,11 @@ export function HandIcon({ shape, color, size = 44 }: { shape: Shape; color: str
       </>
     ),
     glass: <path d="M12 8h20l-3 30H15z" fill={color} opacity=".88" />,
-    thumbs: (
+    finger: (
       <>
-        <rect x="9" y="8" width="11" height="28" rx="5.5" fill={color} opacity=".88" />
-        <rect x="24" y="8" width="11" height="28" rx="5.5" fill={color} opacity=".88" />
+        <rect x="16" y="4" width="12" height="34" rx="6" fill={color} opacity=".88" />
+        <rect x="18.5" y="7" width="7" height="8" rx="3.5" fill="var(--surface)" opacity=".55" />
+        <path d="M18 24h8" stroke="var(--surface)" strokeWidth="1.6" strokeLinecap="round" />
       </>
     ),
     drop: <path d="M22 6c7 9 11 15 11 21a11 11 0 0 1-22 0c0-6 4-12 11-21z" fill={color} opacity=".88" />,

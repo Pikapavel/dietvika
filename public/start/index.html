@@ -1,3 +1,4 @@
+<meta charset="utf-8">
 <title>DietVika</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <meta name="description" content="DietVika: трекер порций методом рук по плану от диетолога. Без подсчёта калорий.">
@@ -77,8 +78,12 @@ section + section { border-top: 1px solid var(--line); }
 .phone .tag b { color: var(--grain); }
 
 /* метод рук */
-.hands-head { display: grid; grid-template-columns: 1fr 1fr; gap: 24px 48px; align-items: end; }
-.hands-head p { max-width: 46ch; }
+.hands-head { display: grid; grid-template-columns: 1fr 1fr; gap: 16px 48px; align-items: start; }
+.hands-head h2 { font-size: clamp(1.6rem, 4.2vw, 2.4rem); }
+.hands-head h3 { font-size: 1.1rem; margin: 0 0 10px; }
+.hands-head p { max-width: 52ch; margin: 0 0 10px; }
+.hands-head .accent { font-weight: 700; }
+.hands-note { font-size: .85rem; margin-top: 12px; }
 .hands { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-top: 36px; }
 .hand { background: var(--surface); border-radius: 20px; padding: 20px; display: grid; gap: 6px; align-content: start; }
 .hand .measure { font-family: var(--display); font-size: 1.35rem; font-weight: 700; color: var(--c); }
@@ -163,7 +168,7 @@ footer { padding-block: 32px 48px; border-top: 1px solid var(--line); font-size:
       <div class="rings" aria-hidden="true">
         <span style="--c: var(--fv)"></span><span style="--c: var(--grain)"></span><span style="--c: var(--prot)"></span><span style="--c: var(--dairy)"></span>
       </div>
-      <h1>Ешь по плану диетолога и не считай калории</h1>
+      <h1>Ешь по плану и не считай калории</h1>
       <p class="lead">Отмечай порции руками: ладонь белка, кулак овощей, горсть крупы. Кольца дня покажут, чего хватило, а чего ещё стоит доесть.</p>
       <div class="ctas">
         <a class="btn btn-dark" href="https://pikapavel.github.io/dietvika/DietVika-1.0.apk" data-apk>
@@ -187,18 +192,22 @@ footer { padding-block: 32px 48px; border-top: 1px solid var(--line); font-size:
 <section id="method">
   <div class="wrap">
     <div class="hands-head">
+      <h2>Метод порций</h2>
       <div>
-        <p class="eyebrow">Метод рук</p>
-        <h2 style="margin-top:10px">Мерка всегда с собой</h2>
+        <h3>Питание без ежедневного подсчёта калорий</h3>
+        <p class="muted">Приложение помогает отслеживать питание через порции основных групп продуктов — без необходимости постоянно взвешивать еду и считать калории.</p>
+        <p class="muted">В основе подхода — ориентировочные потребности человека и научно обоснованные рекомендации по здоровому питанию. На их основе формируются ориентиры по группам продуктов с учётом потребностей и целей человека.</p>
+        <p class="muted">Чтобы сделать отслеживание удобнее, в приложении используется метод порций рукой: ладонь, кулак, горсть и палец помогают приблизительно оценивать количество еды в повседневной жизни.</p>
+        <p class="accent">Рука всегда под рукой и служит удобным ориентиром, но не является точным измерительным инструментом.</p>
       </div>
-      <p class="muted">Весы и таблицы калорий не нужны. Порцию измеряешь своей рукой, поэтому мерка подходит именно тебе. Счёт порций взят из американской методики MyPlate (USDA), а нормы на день подбирает диетолог.</p>
     </div>
     <div class="hands">
-      <div class="hand" style="--c: var(--fv)"><span class="measure">Кулак</span><span class="group">Фрукты и овощи</span><span class="ex">Средний фрукт, горсть ягод или кулак овощей. Минимум 5 в день.</span></div>
-      <div class="hand" style="--c: var(--grain)"><span class="measure">Горсть</span><span class="group">Зерновые</span><span class="ex">Ладонь лодочкой готовой крупы или ломтик хлеба.</span></div>
-      <div class="hand" style="--c: var(--prot)"><span class="measure">Ладонь</span><span class="group">Белок</span><span class="ex">Ладонь мяса или рыбы = 3 порции. Яйцо = 1 порция.</span></div>
-      <div class="hand" style="--c: var(--dairy)"><span class="measure">Стакан</span><span class="group">Молочные</span><span class="ex">Стакан молока или кефира, 3 ложки творога с горкой.</span></div>
+      <div class="hand" style="--c: var(--fv)"><span class="measure">✊ Кулак</span><span class="group">Ориентир для порции овощей и фруктов</span><span class="ex">Средний фрукт или овощ, кулак овощей. Минимум 5 в день.</span></div>
+      <div class="hand" style="--c: var(--grain)"><span class="measure">🤲 Горсть</span><span class="group">Ориентир для порции зерновых</span><span class="ex">Ладонь лодочкой готовой крупы.</span></div>
+      <div class="hand" style="--c: var(--prot)"><span class="measure">✋ Ладонь</span><span class="group">Ориентир для порции белковых продуктов</span><span class="ex">Ладонь мяса или рыбы = 3 порции.</span></div>
+      <div class="hand" style="--c: var(--dairy)"><span class="measure">☝️ Палец</span><span class="group">Ориентир для небольшого кусочка сыра</span><span class="ex">Кусочек сыра размером с палец, около 30 г.</span></div>
     </div>
+    <p class="muted hands-note">Размеры порций приблизительны и зависят от продукта.</p>
   </div>
 </section>
 

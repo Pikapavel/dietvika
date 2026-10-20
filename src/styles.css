@@ -260,3 +260,19 @@ tfoot td { font-weight: 700; border-bottom: 0; }
 .picker.times { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); }
 .picker.times button { padding-inline: 2px; font-size: .9rem; }
 .remind-link { align-self: flex-start; margin-top: -8px; padding-block: 4px; }
+
+/* правки 20.10: руки 2×2 в онбординге, пример дня со значками и итогом, кольца по отдельности */
+.hands4 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.hands4 > div { display: flex; flex-direction: column; align-items: center; text-align: center; gap: 4px; background: var(--surface); border-radius: 16px; padding: 14px 8px; font-size: .85rem; }
+.hands4 strong { font-size: 1.05rem; }
+.example-day th.gchip { color: var(--on-color); border-bottom: 0; padding: 6px 2px; font-size: .62rem; width: 44px; }
+.example-day td.c { width: 44px; white-space: nowrap; vertical-align: middle; }
+.example-day td.c svg { margin: 0 1px; vertical-align: middle; }
+.example-day tfoot td { padding-top: 10px; border-top: 1px solid var(--line); }
+.example-day td.total { font-size: 1.15rem; font-family: var(--display); }
+.ring-card { background: var(--surface); border-radius: 20px; padding: 16px; display: flex; flex-direction: column; gap: 12px; }
+.ring-card .head { display: flex; justify-content: space-between; font-weight: 700; }
+.ring-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; }
+.ring-row > div { display: flex; flex-direction: column; align-items: center; gap: 4px; text-align: center; font-size: .78rem; line-height: 1.2; color: var(--muted); min-width: 0; }
+.ring-row svg { width: 100%; max-width: 72px; height: auto; }
+.nudge .remind-in { display: block; margin-top: 6px; padding: 0; }

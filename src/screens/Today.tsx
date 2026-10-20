@@ -5,7 +5,7 @@ import { sumDay, sumWeek, type Entry, type LogGroup } from "../log";
 import { legWeekGoal, planGoals, waterGoal, type Plan } from "../plan";
 import type { AppData } from "../store";
 import { HandIcon } from "../components/HandIcon";
-import { Rings } from "../components/Rings";
+import { RingRow } from "../components/Rings";
 import { Sheet } from "../components/Sheet";
 import { useToast } from "../components/Toast";
 import { BangButton, SugarSheet } from "../components/SugarSheet";
@@ -25,7 +25,7 @@ export function Today({ data, plan }: { data: AppData; plan: Plan }) {
   const now = todayIso();
   const [date, setDate] = useState<ISODate>(now);
   const [open, setOpen] = useState<Open>(null);
-  // ссылка «Напомнить вечером» под «Что доесть» — пока напоминание не добавляли
+  // ссылка «Напомнить вечером» внутри «Что доесть» — пока напоминание не добавляли
   const [reminder, setReminder] = useState(savedReminder);
   const isToday = date === now;
   const goals = planGoals(plan);
@@ -71,38 +71,34 @@ export function Today({ data, plan }: { data: AppData; plan: Plan }) {
       <section className="stack">
         {!isToday && <div className="banner">Заполняешь вчерашний день: все отметки попадут во вчера.</div>}
 
-        <div className="hero">
-          <Rings progress={progress} size={136} label={`Закрыто колец: ${closed} из ${DAILY_IDS.length}`} />
-          <div className="legend">
-            <div><strong>Закрыто колец</strong><strong>{closed} из {DAILY_IDS.length}</strong></div>
-            {DAILY_IDS.map((g) => (
-              <div key={g}>
-                <span><span className="dot" style={{ background: `var(--${g})` }} />{GROUPS[g].name}</span>
-                <span>{fmt(toDisplay(g, eaten[g]))}/{fmt(toDisplay(g, goals[g]))}</span>
-              </div>
-            ))}
-          </div>
+        <div className="ring-card">
+          <div className="head"><span>Закрыто колец</span><span>{closed} из {DAILY_IDS.length}</span></div>
+          <RingRow items={DAILY_IDS.map((g) => ({
+            id: g, value: fmt(toDisplay(g, eaten[g])), goal: fmt(toDisplay(g, goals[g])), pct: progress[g],
+          }))} />
         </div>
 
-        {isToday && (
-          behind ? (
+        {isToday && (() => {
+          // «Напомнить вечером» — в том же поле, что и «Что доесть»: это одно действие (Вика, 19.10)
+          const remind = !reminder && (
+            <button className="link small remind-in" onClick={() => setOpen("reminder")}>Напомнить вечером, что доесть</button>
+          );
+          return behind ? (
             <div className="nudge" role="status">
               <span className="dot" style={{ background: `var(--${behind})` }} />
-              <div><strong>Что доесть.</strong> {nudgeText(behind, goals[behind] - eaten[behind], !!plan.veg)}</div>
+              <div><strong>Что доесть.</strong> {nudgeText(behind, goals[behind] - eaten[behind], !!plan.veg)}{remind}</div>
             </div>
           ) : legLeft > 1e-9 ? (
             <div className="nudge" role="status">
               <span className="dot" style={{ background: "var(--leg)" }} />
-              <div><strong>Кольца дня закрыты.</strong> {nudgeText("leg", legLeft)}</div>
+              <div><strong>Кольца дня закрыты.</strong> {nudgeText("leg", legLeft)}{remind}</div>
             </div>
           ) : (
             <div className="nudge" role="status"><span className="dot" style={{ background: "var(--ok)" }} /><div>Все кольца закрыты. Отличный день!</div></div>
-          )
-        )}
+          );
+        })()}
 
-        {isToday && !reminder && (
-          <button className="link small remind-link" onClick={() => setOpen("reminder")}>Напомнить вечером, что доесть</button>
-        )}
+        <p className="muted small">Плюс и минус отмечают порцию сразу: например, 1 ладонь белка — это 3 порции. Нажми на название группы — там шпаргалка по порциям и продуктам.</p>
 
         <div className="rows">
           {GROUP_IDS.map((g) => {
@@ -156,7 +152,6 @@ export function Today({ data, plan }: { data: AppData; plan: Plan }) {
           <span>{SUGAR.line}</span>
           <BangButton onClick={() => setOpen("sugar")} label="Сахар: подробнее" />
         </div>
-        <p className="muted small">Плюс и минус отмечают порцию сразу. Нажми на название группы — там подсказки руками, продукты и список отметок.</p>
       </section>
 
       {open === "reminder" && <ReminderSheet onClose={() => setOpen(null)} onAdded={setReminder} />}

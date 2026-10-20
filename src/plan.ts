@@ -91,7 +91,7 @@ export function planGoals(plan: Plan): Goals {
 }
 
 /** Бобовые по умолчанию — 3 порции в неделю (решение Вики 16.10) */
-export const LEG_WEEK_DEFAULT = 3;
+export const LEG_WEEK_DEFAULT = 4;
 
 export function legWeekGoal(plan: Plan): number {
   return plan.legWeek ?? LEG_WEEK_DEFAULT;

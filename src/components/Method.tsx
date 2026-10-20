@@ -1,5 +1,6 @@
 // Наглядные куски методики: гарвардская тарелка, пример дня (по модели BNF), советы.
-import { GROUPS, GROUP_IDS, type GroupId } from "../units";
+import type React from "react";
+import { DAILY_IDS, GROUPS, type DailyId } from "../units";
 import { BangButton } from "./SugarSheet";
 
 export function Plate() {
@@ -23,25 +24,66 @@ export function Plate() {
   );
 }
 
-const DAY: { meal: string; food: string; g: GroupId[] }[] = [
-  { meal: "Завтрак", food: "хлопья с молоком и бананом", g: ["fv", "grain", "dairy"] },
-  { meal: "Перекус", food: "овсяные галеты и сыр", g: ["grain", "dairy"] },
-  { meal: "Обед", food: "цельнозерновая пита с хумусом и салатом, мандарины", g: ["fv", "leg", "grain", "prot"] },
-  { meal: "Перекус", food: "яблоко", g: ["fv"] },
-  { meal: "Ужин", food: "спагетти болоньезе с салатом, йогурт с ягодами", g: ["fv", "grain", "prot", "dairy"] },
+// Пример дня по образцу британского гида (BNF), блюда — вариант Вики 19.10.
+// Бобовые отдельно не выделяем; в строке «Итого» — сколько раз группа встретилась за день.
+const DAY: { meal: string; food: string; g: Partial<Record<DailyId, number>> }[] = [
+  { meal: "Завтрак", food: "овсянка с молоком, банан", g: { fv: 1, grain: 1, dairy: 1 } },
+  { meal: "Перекус", food: "хлебец с сыром", g: { grain: 1, dairy: 1 } },
+  { meal: "Обед", food: "борщ, цельнозерновой хлеб, мандарины", g: { fv: 2, grain: 1, prot: 1 } },
+  { meal: "Перекус", food: "йогурт, ягоды", g: { fv: 1, dairy: 1 } },
+  { meal: "Ужин", food: "спагетти болоньезе, салат", g: { fv: 1, grain: 1, prot: 1 } },
 ];
-const SHORT: Record<GroupId, string> = { fv: "Ф+О", leg: "Боб", grain: "Зер", prot: "Бел", dairy: "Мол" };
+const SHORT: Record<DailyId, string> = { fv: "Фр/Ов", grain: "Зер", prot: "Бел", dairy: "Мол" };
+
+/** Значки групп для примера дня: яблоко, колос, ножка, бутылочка */
+function Glyph({ g }: { g: DailyId }) {
+  const c = `var(--${g})`;
+  const shapes: Record<DailyId, React.ReactElement> = {
+    fv: (
+      <>
+        <path d="M8 5.2C6.6 4 3.6 4 2.8 6.6c-.8 2.6.6 6 2.4 7 .9.5 1.6 0 2.8 0s1.9.5 2.8 0c1.8-1 3.2-4.4 2.4-7C12.4 4 9.4 4 8 5.2z" fill={c} />
+        <path d="M8 5.2c0-1.6.7-3 2.4-3.6" stroke={c} strokeWidth="1.3" fill="none" strokeLinecap="round" />
+      </>
+    ),
+    grain: (
+      <>
+        <path d="M8 15V4" stroke={c} strokeWidth="1.3" strokeLinecap="round" />
+        {[4.5, 7.5, 10.5].map((y) => (
+          <g key={y} fill={c}>
+            <ellipse cx="5.6" cy={y} rx="1.5" ry="2.4" transform={`rotate(-35 5.6 ${y})`} />
+            <ellipse cx="10.4" cy={y} rx="1.5" ry="2.4" transform={`rotate(35 10.4 ${y})`} />
+          </g>
+        ))}
+        <ellipse cx="8" cy="2.6" rx="1.3" ry="2" fill={c} />
+      </>
+    ),
+    prot: (
+      <>
+        <ellipse cx="10" cy="6" rx="4.6" ry="4" transform="rotate(-40 10 6)" fill={c} />
+        <path d="M7 9.3L3.8 12.5" stroke={c} strokeWidth="2" strokeLinecap="round" />
+        <circle cx="2.8" cy="12.3" r="1.3" fill={c} />
+        <circle cx="3.7" cy="13.6" r="1.3" fill={c} />
+      </>
+    ),
+    dairy: (
+      <path d="M6 1.5h4v2.2l1.6 2.4V14a.8.8 0 0 1-.8.8H5.2a.8.8 0 0 1-.8-.8V6.1L6 3.7z M4.6 8.5h6.8"
+        fill="none" stroke={c} strokeWidth="1.3" strokeLinejoin="round" />
+    ),
+  };
+  return <svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true">{shapes[g]}</svg>;
+}
 
 export function ExampleDay() {
+  const total = (g: DailyId) => DAY.reduce((s, r) => s + (r.g[g] ?? 0), 0);
   return (
     <div style={{ overflowX: "auto" }}>
-      <table>
+      <table className="example-day">
         <caption className="sr-only">Пример дня: какие группы закрывает каждый приём пищи</caption>
         <thead>
           <tr>
             <th scope="col">Приём пищи</th>
-            {GROUP_IDS.map((g) => (
-              <th key={g} scope="col" className="c" title={GROUPS[g].name}>
+            {DAILY_IDS.map((g) => (
+              <th key={g} scope="col" className="c gchip" style={{ background: `var(--${g})` }} title={GROUPS[g].name}>
                 <span aria-hidden="true">{SHORT[g]}</span><span className="sr-only">{GROUPS[g].name}</span>
               </th>
             ))}
@@ -51,14 +93,23 @@ export function ExampleDay() {
           {DAY.map((r, i) => (
             <tr key={i}>
               <td><strong>{r.meal}</strong><div className="muted small">{r.food}</div></td>
-              {GROUP_IDS.map((g) => (
-                <td key={g} className="c">
-                  {r.g.includes(g) ? <span className="dot" style={{ background: `var(--${g})`, margin: "4px 0 0" }} role="img" aria-label="да" /> : null}
-                </td>
-              ))}
+              {DAILY_IDS.map((g) => {
+                const n = r.g[g] ?? 0;
+                return (
+                  <td key={g} className="c" aria-label={n ? String(n) : undefined}>
+                    {Array.from({ length: n }, (_, k) => <Glyph key={k} g={g} />)}
+                  </td>
+                );
+              })}
             </tr>
           ))}
         </tbody>
+        <tfoot>
+          <tr>
+            <td>Итого</td>
+            {DAILY_IDS.map((g) => <td key={g} className="c total" style={{ color: `var(--${g})` }}>{total(g)}</td>)}
+          </tr>
+        </tfoot>
       </table>
     </div>
   );

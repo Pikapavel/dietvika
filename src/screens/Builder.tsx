@@ -127,7 +127,7 @@ export function Builder() {
             <label className="field"><span>Вода, стаканов</span><input inputMode="numeric" value={water} onChange={(e) => setWater(e.target.value)} /></label>
           </div>
           <p className="muted small">Фрукты и овощи, молочные — в чашках (cup), зерновые и белок — в oz-eq. Клиент видит это как «порции». Фрукты и овощи: сумма по таблице, не меньше 5.</p>
-          <p className="muted small" id="leg-hint">Бобовые — порций за неделю (0–14), 1 порция = ½ кулака варёных фасоли, нута или чечевицы. В белок и овощи не входят.</p>
+          <p className="muted small" id="leg-hint">Бобовые — порций за неделю (0–14), 1 порция = ½ кулака варёных фасоли, нута или чечевицы, по умолчанию 4 в неделю. В белок и овощи не входят.</p>
           <label className="field"><span>Старт плана</span><input type="date" value={start} onChange={(e) => setStart(e.target.value || todayIso())} /></label>
         </div>
 

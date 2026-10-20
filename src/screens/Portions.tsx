@@ -10,7 +10,7 @@ export function Portions() {
   return (
     <>
       <header className="top">
-        <div><div className="eyebrow">Метод рук</div><h1>Что такое порция</h1></div>
+        <div><div className="eyebrow">Метод порций</div><h1>Что такое порция</h1></div>
         <button className="btn secondary" style={{ minHeight: 36, padding: "6px 12px", fontSize: ".85rem" }} onClick={() => go("#/intro")}>Как пользоваться</button>
       </header>
       <section className="stack">
@@ -46,7 +46,7 @@ export function Portions() {
         <Tips onSugar={() => setSugar(true)} />
         <div className="card">
           <div className="eyebrow">Пример дня</div>
-          <p className="muted small">Так выглядит день, где закрыты все группы. Точное число порций — в твоём плане.</p>
+          <p className="muted small">Как приёмы пищи за день набирают все группы. Точное число порций — в твоём плане.</p>
           <ExampleDay />
         </div>
       </section>
