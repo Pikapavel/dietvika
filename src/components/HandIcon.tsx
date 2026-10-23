@@ -1,8 +1,14 @@
 import type React from "react";
 import type { Shape } from "../units";
 
-/** Простые значки мер руками: кулак, ладонь, горсть, стакан, палец, капля, звезда */
+// Руки нарисовала Вика в Canva (24.10): светлым выделена мера. Стакан, капля и звезда — значками.
+const HAND_IMG = new Set<Shape>(["fist", "cupped", "palm", "finger"]);
+
+/** Меры руками — картинками Вики; стакан, капля, звезда — простыми значками */
 export function HandIcon({ shape, color, size = 44 }: { shape: Shape; color: string; size?: number }) {
+  if (HAND_IMG.has(shape)) {
+    return <img className="hand-img" src={`${import.meta.env.BASE_URL}hands/${shape}.webp`} width={size} height={size} alt="" aria-hidden="true" />;
+  }
   const paths: Record<Shape, React.ReactElement> = {
     fist: (
       <>
