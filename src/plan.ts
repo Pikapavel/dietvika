@@ -21,6 +21,8 @@ export interface Plan {
   veg?: boolean;
   /** бобовые: порций за неделю (0–14), без поля — LEG_WEEK_DEFAULT */
   legWeek?: number;
+  /** контакт специалиста для кнопки «Написать»: @ник Telegram, телефон, почта или https-ссылка */
+  contact?: string;
 }
 // Старые ссылки могли содержать freeLimit — поле игнорируется:
 // у свободного приёма пищи нет лимита (решение Вики 15.10).
@@ -159,7 +161,21 @@ export function sanitizePlan(raw: unknown): Plan | null {
   if (legWeek !== undefined) plan.legWeek = Math.round(legWeek);
   const water = num(o.water, 1, 20);
   if (water !== undefined) plan.water = Math.round(water);
+  const contact = str(o.contact, 100);
+  if (contact && contactHref(contact)) plan.contact = contact;
   return plan;
+}
+
+/** Ссылка для кнопки «Написать специалисту». null — если контакт не распознан. */
+export function contactHref(contact: string): string | null {
+  const c = contact.trim();
+  if (/^https:\/\/[^\s]+$/i.test(c)) return c;
+  const tg = /^(?:@|(?:https?:\/\/)?t\.me\/)([A-Za-z0-9_]{4,32})$/i.exec(c);
+  if (tg) return `https://t.me/${tg[1]}`;
+  if (/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(c)) return `mailto:${c}`;
+  const digits = c.replace(/[\s()-]/g, "");
+  if (/^\+?\d{10,15}$/.test(digits)) return `tel:${digits}`;
+  return null;
 }
 
 export function decodePlan(encoded: string): Plan | null {
