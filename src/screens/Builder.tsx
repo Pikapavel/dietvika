@@ -2,7 +2,7 @@
 import { useMemo, useState } from "react";
 import { today as todayIso } from "../dates";
 import { ACTIVITY_LABEL, STATUS_KCAL, STATUS_LABEL, suggestLevel, type Activity, type Goal, type Sex, type Status } from "../nasem";
-import { LEG_WEEK_DEFAULT, LEVELS, inviteLink, suggestedGoals, type Goals, type Plan } from "../plan";
+import { LEG_WEEK_DEFAULT, LEVELS, contactHref, inviteLink, suggestedGoals, type Goals, type Plan } from "../plan";
 import { useToast } from "../components/Toast";
 import { copyText } from "./PlanScreen";
 import { DAILY_IDS, GROUPS, WATER, type DailyId } from "../units";
@@ -13,6 +13,7 @@ export function Builder() {
   const toast = useToast();
   const [client, setClient] = useState("");
   const [specialist, setSpecialist] = useState("Вика");
+  const [contact, setContact] = useState("");
   const [sex, setSex] = useState<Sex>("f");
   const [age, setAge] = useState("35");
   const [height, setHeight] = useState("165");
@@ -52,6 +53,7 @@ export function Builder() {
     if (Number.isFinite(leg) && leg >= 0 && leg <= 14 && legWeek.trim() !== "" && leg !== LEG_WEEK_DEFAULT) plan.legWeek = leg;
     const wn = Math.round(Number(water));
     if (wn > 0 && wn !== WATER.defaultGoal) plan.water = wn;
+    if (contactHref(contact)) plan.contact = contact.trim();
     setLink(inviteLink(plan));
   };
 
@@ -71,6 +73,11 @@ export function Builder() {
             <label className="field"><span>Имя клиента</span><input value={client} onChange={(e) => setClient(e.target.value)} placeholder="Анна" /></label>
             <label className="field"><span>Специалист</span><input value={specialist} onChange={(e) => setSpecialist(e.target.value)} /></label>
           </div>
+          <label className="field"><span>Контакт для связи (необязательно)</span>
+            <input value={contact} onChange={(e) => setContact(e.target.value)} placeholder="@ник в Telegram, телефон или почта" aria-describedby="contact-hint" /></label>
+          {contact.trim() !== "" && !contactHref(contact)
+            ? <p className="small" id="contact-hint" style={{ color: "var(--bad)" }}>Не распознал контакт: нужен @ник, телефон, почта или ссылка https://</p>
+            : <p className="muted small" id="contact-hint">У клиента на экране «План» появится кнопка «Написать специалисту».</p>}
           <div className="grid2">
             <label className="field"><span>Пол</span>
               <select value={sex} onChange={(e) => setSex(e.target.value as Sex)}><option value="f">Женский</option><option value="m">Мужской</option></select></label>

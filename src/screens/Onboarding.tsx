@@ -3,12 +3,12 @@ import { HandIcon } from "../components/HandIcon";
 import { ExampleDay, Plate } from "../components/Method";
 import type { Shape } from "../units";
 
-// Четыре меры руками (правки Вики 20.10): стакан убрали, вместо него палец для сыра
+// Четыре меры руками (Вика 20.10 и 24.10): палец — кончик большого пальца, ориентир для масла
 const HANDS: [Shape, string, string, string][] = [
   ["fist", "var(--fv)", "Кулак", "1 порция фруктов или овощей"],
   ["cupped", "var(--grain)", "Горсть", "1 порция зерновых"],
   ["palm", "var(--prot)", "Ладонь", "3 порции белка: мясо, птица, рыба"],
-  ["finger", "var(--dairy)", "Палец", "1 порция сыра"],
+  ["finger", "var(--grain)", "Палец", "Кончик большого пальца: порция масла"],
 ];
 
 export function Onboarding({ onDone }: { onDone: () => void }) {
@@ -29,10 +29,10 @@ export function Onboarding({ onDone }: { onDone: () => void }) {
       <p className="muted">Необязательно каждый раз взвешивать еду. Ладонь, кулак, горсть и палец помогают приблизительно оценивать количество продуктов прямо в тарелке.</p>
       <div className="hands4">
         {HANDS.map(([s, c, name, t]) => (
-          <div key={name}><HandIcon shape={s} color={c} size={64} /><strong>{name}</strong><span className="muted">{t}</span></div>
+          <div key={name}><HandIcon shape={s} color={c} size={84} /><strong>{name}</strong><span className="muted">{t}</span></div>
         ))}
       </div>
-      <p className="muted small">Размеры порций приблизительны и зависят от продукта. Бобовые — 1 кулак, их считаем за неделю.</p>
+      <p className="muted small">Размеры порций приблизительны и зависят от продукта. Бобовые — 1 кулак, их считаем за неделю. Молочные меряем стаканом.</p>
     </div>,
     <div className="slide" key="2">
       <div className="eyebrow">3 из 4</div>

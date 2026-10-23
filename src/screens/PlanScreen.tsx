@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { dayMonth, today as todayIso, weekStart, type ISODate } from "../dates";
-import { LEVELS, legWeekGoal, levelNumber, planGoals, waterGoal, type Plan } from "../plan";
+import { LEVELS, contactHref, legWeekGoal, levelNumber, planGoals, waterGoal, type Plan } from "../plan";
 import { summaryText } from "../stats";
 import { canvasFile, downloadFile, drawSummary } from "../summaryImage";
 import { storageWorks, KEYS, readRaw, writeRaw } from "../storage";
@@ -91,6 +91,14 @@ export function PlanScreen({ data, plan }: { data: AppData; plan: Plan }) {
             <dt>Старт плана</dt><dd>{dayMonth(plan.start)}</dd>
             {plan.veg && <><dt>Питание</dt><dd>Вегетарианский план</dd></>}
           </dl>
+          {plan.contact && contactHref(plan.contact) && (
+            <>
+              <a className="btn block" style={{ marginTop: 12 }} href={contactHref(plan.contact)!} target="_blank" rel="noopener noreferrer">
+                Написать {plan.specialist === "Вика" ? "Вике" : "специалисту"}
+              </a>
+              <p className="muted small" style={{ marginTop: 6 }}>Если что-то непонятно с порциями или блюдами — спроси, не ищи ответ сам.</p>
+            </>
+          )}
         </div>
         <div className="card">
           <div className="eyebrow">Порций в день</div>
