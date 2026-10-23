@@ -86,6 +86,7 @@ section + section { border-top: 1px solid var(--line); }
 .hands-note { font-size: .85rem; margin-top: 12px; }
 .hands { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-top: 36px; }
 .hand { background: var(--surface); border-radius: 20px; padding: 20px; display: grid; gap: 6px; align-content: start; }
+.hand img { width: 96px; height: 96px; object-fit: contain; }
 .hand .measure { font-family: var(--display); font-size: 1.35rem; font-weight: 700; color: var(--c); }
 .hand .group { font-weight: 700; }
 .hand .ex { font-size: .9rem; color: var(--muted); }
@@ -202,12 +203,12 @@ footer { padding-block: 32px 48px; border-top: 1px solid var(--line); font-size:
       </div>
     </div>
     <div class="hands">
-      <div class="hand" style="--c: var(--fv)"><span class="measure">✊ Кулак</span><span class="group">Ориентир для порции овощей и фруктов</span><span class="ex">Средний фрукт или овощ.</span></div>
-      <div class="hand" style="--c: var(--grain)"><span class="measure">🤲 Горсть</span><span class="group">Ориентир для порции зерновых</span><span class="ex">Ладонь лодочкой готовой крупы.</span></div>
-      <div class="hand" style="--c: var(--prot)"><span class="measure">✋ Ладонь</span><span class="group">Ориентир для порции белковых продуктов</span><span class="ex">Ладонь мяса или рыбы = 3 порции.</span></div>
-      <div class="hand" style="--c: var(--dairy)"><span class="measure">☝️ Палец</span><span class="group">Ориентир для небольшого кусочка сыра</span><span class="ex">Кусочек сыра размером с палец, около 30 г.</span></div>
+      <div class="hand" style="--c: var(--fv)"><img src="../hands/fist.webp" alt="" width="96" height="96"><span class="measure">Кулак</span><span class="group">Ориентир для порции овощей и фруктов</span><span class="ex">Средний фрукт или овощ.</span></div>
+      <div class="hand" style="--c: var(--grain)"><img src="../hands/cupped.webp" alt="" width="96" height="96"><span class="measure">Горсть</span><span class="group">Ориентир для порции зерновых</span><span class="ex">Ладонь лодочкой готовой крупы.</span></div>
+      <div class="hand" style="--c: var(--prot)"><img src="../hands/palm.webp" alt="" width="96" height="96"><span class="measure">Ладонь</span><span class="group">Ориентир для порции белковых продуктов</span><span class="ex">Ладонь мяса или рыбы = 3 порции.</span></div>
+      <div class="hand" style="--c: var(--ph)"><img src="../hands/finger.webp" alt="" width="96" height="96"><span class="measure">Палец</span><span class="group">Ориентир для порции масла</span><span class="ex">Кончик большого пальца: ложка масла или сметаны.</span></div>
     </div>
-    <p class="muted hands-note">Размеры порций приблизительны и зависят от продукта.</p>
+    <p class="muted hands-note">Размеры порций приблизительны и зависят от продукта. Молочные продукты меряем стаканом.</p>
   </div>
 </section>
 
