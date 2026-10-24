@@ -1,0 +1,23 @@
+BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//DietVika//Evening reminder//RU
+CALSCALE:GREGORIAN
+METHOD:PUBLISH
+BEGIN:VEVENT
+UID:dietvika-evening-1900@dietvika
+DTSTAMP:20261016T000000Z
+DTSTART:20261016T190000
+DTEND:20261016T190500
+RRULE:FREQ=DAILY
+SUMMARY:DietVika: что доесть сегодня?
+DESCRIPTION:Открой DietVika и посмотри «Что доесть
+ ».\nhttps://pikapavel.github.io/dietvika/
+URL:https://pikapavel.github.io/dietvika/
+TRANSP:TRANSPARENT
+BEGIN:VALARM
+ACTION:DISPLAY
+DESCRIPTION:DietVika: что доесть сегодня?
+TRIGGER:PT0M
+END:VALARM
+END:VEVENT
+END:VCALENDAR
