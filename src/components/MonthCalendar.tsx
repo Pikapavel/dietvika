@@ -1,4 +1,4 @@
-// Календарь ровных дней (для мотивации, без наказаний): зелёный — все группы дня в норме,
+// Календарь (для мотивации, без наказаний): зелёный — все кольца дня закрыты,
 // светлый — что-то отмечено, пусто — отметок нет. Красного нет. Нажатие на день — итоги дня.
 import { useState } from "react";
 import { WEEKDAY_SHORT, addMonths, dayMonth, fromISO, longDate, monthDays, monthLabel, monthStart, type ISODate } from "../dates";
@@ -8,7 +8,7 @@ import { DAILY_IDS, FREE, GLASS, GROUPS, fmt, plural, toDisplay } from "../units
 import { Sheet } from "./Sheet";
 
 const LEVEL_TEXT: Record<DayLevel, string> = {
-  full: "все группы в норме",
+  full: "все кольца закрыты",
   part: "есть отметки",
   none: "нет отметок",
 };
@@ -29,7 +29,7 @@ export function MonthCalendar({ log, plan, now }: { log: Log; plan: Plan; now: I
     <div className="card" data-testid="calendar">
       <div className="weekbar">
         <div>
-          <div className="eyebrow">Ровные дни</div>
+          <div className="eyebrow">Календарь</div>
           <h2 className="cal-month">{monthLabel(month)}</h2>
         </div>
         <div className="weekbar">
@@ -51,12 +51,12 @@ export function MonthCalendar({ log, plan, now }: { log: Log; plan: Plan; now: I
         })}
       </div>
       <div className="cal-legend" aria-hidden="true">
-        <span><i className="full" />все группы в норме</span>
+        <span><i className="full" />все кольца закрыты</span>
         <span><i className="part" />есть отметки</span>
         <span><i className="none" />пусто</span>
       </div>
       <p className="muted small">
-        {even ? `Ровных дней в этом месяце: ${even}. ` : ""}Ровный день — когда закрыты все кольца дня. Нажми на день, чтобы посмотреть его итоги.
+        {even ? `Дней со всеми кольцами в этом месяце: ${even}. ` : ""}Нажми на день, чтобы посмотреть его итоги.
       </p>
       {open && <DaySheet date={open} log={log} plan={plan} goals={goals} onClose={() => setOpen(null)} />}
     </div>
