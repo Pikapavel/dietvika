@@ -23,6 +23,8 @@ export interface Plan {
   legWeek?: number;
   /** контакт специалиста для кнопки «Написать»: @ник Telegram, телефон, почта или https-ссылка */
   contact?: string;
+  /** цель клиента для блока «Моя цель» в профиле: «Снизить вес до 65 кг» (из калькулятора конструктора) */
+  goal?: string;
 }
 // Старые ссылки могли содержать freeLimit — поле игнорируется:
 // у свободного приёма пищи нет лимита (решение Вики 15.10).
@@ -163,6 +165,8 @@ export function sanitizePlan(raw: unknown): Plan | null {
   if (water !== undefined) plan.water = Math.round(water);
   const contact = str(o.contact, 100);
   if (contact && contactHref(contact)) plan.contact = contact;
+  const goal = str(o.goal, 80);
+  if (goal) plan.goal = goal;
   return plan;
 }
 

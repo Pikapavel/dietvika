@@ -10,6 +10,10 @@ export const KEYS = {
   theme: PREFIX + "theme",
   /** время вечернего напоминания "20:00", если клиент добавлял его в календарь */
   reminder: PREFIX + "reminder",
+  /** фото профиля: JPEG data URL 192×192 */
+  avatar: PREFIX + "avatar",
+  /** цель, которую клиент написал сам (перекрывает цель из плана) */
+  goal: PREFIX + "goal",
 } as const;
 
 const memory = new Map<string, string>();
