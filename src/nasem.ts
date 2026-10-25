@@ -54,48 +54,42 @@ export function bmrMifflin(sex: Sex, age: number, heightCm: number, weightKg: nu
   return 10 * weightKg + 6.25 * heightCm - 5 * age + (sex === "m" ? 5 : -161);
 }
 
-export const LOSS_DEFICIT = 500;
+/** Нижняя граница плана при снижении веса */
 export const LOSS_FLOOR = 1600;
-/** Набор мышечной массы: поддержание + 10% */
-export const GAIN_SURPLUS = 0.1;
 
 export interface Suggestion {
+  /** расход при текущем весе (с прибавкой при беременности и кормлении) */
   tee: number;
   bmr: number;
-  /** целевая калорийность до округления к уровню */
+  /** калорийность, от которой выбираем уровень: расход при целевом весе (снижение, набор) или при текущем */
   target: number;
   level: number;
   note: string;
 }
 
 const clampLevel = (k: number) => Math.min(MAX_LEVEL, Math.max(MIN_LEVEL, k));
+/** Уровень плана — вниз до шага таблицы: расчёт 2284 → план 2200 (Вика, 24.10) */
+const floorLevel = (k: number) => nearest(clampLevel(Math.floor(k / 200) * 200));
 
-export function suggestLevel(sex: Sex, act: Activity, age: number, h: number, w: number, goal: Goal, status: Status = "none"): Suggestion {
+// Решение Вики 24.10: «−500» убрали. При снижении и наборе считаем те же формулы с целевым весом,
+// который вводит человек; при поддержании — с текущим.
+export function suggestLevel(sex: Sex, act: Activity, age: number, h: number, w: number, goal: Goal, status: Status = "none", targetW?: number): Suggestion {
   const extra = sex === "f" ? STATUS_KCAL[status] : 0;
   const tee = teeNasem(sex, act, age, h, w) + extra;
   const bmr = bmrMifflin(sex, age, h, w);
   if (extra > 0) {
-    const level = clampLevel(Math.round(tee / 200) * 200);
-    return { tee, bmr, target: tee, level: nearest(level), note: `${STATUS_LABEL[status]}: расход + ${extra} ккал, без дефицита, округлено до ближайшего уровня.` };
+    return { tee, bmr, target: tee, level: floorLevel(tee), note: `${STATUS_LABEL[status]}: расход + ${extra} ккал, при текущем весе, округлено вниз до уровня.` };
   }
+  if (goal === "maintain" || !targetW) {
+    return { tee, bmr, target: tee, level: floorLevel(tee), note: "Поддержание: расход при текущем весе, округлено вниз до уровня." };
+  }
+  const atTarget = teeNasem(sex, act, age, h, targetW);
   if (goal === "gain") {
-    const target = tee * (1 + GAIN_SURPLUS);
-    // округляем ВВЕРХ до уровня таблицы, чтобы не потерять профицит
-    const level = clampLevel(Math.ceil(target / 200) * 200);
-    return { tee, bmr, target, level: nearest(level), note: "Набор мышечной массы: расход + 10%, округлено вверх до уровня." };
+    return { tee, bmr, target: atTarget, level: floorLevel(atTarget), note: `Набор: расход при целевом весе ${targetW} кг, округлено вниз до уровня.` };
   }
-  if (goal === "maintain") {
-    const level = clampLevel(Math.round(tee / 200) * 200);
-    return { tee, bmr, target: tee, level: nearest(level), note: "Поддержание: расход округлён до ближайшего уровня." };
-  }
-  const raw = tee - LOSS_DEFICIT;
-  const target = Math.max(raw, bmr, LOSS_FLOOR);
-  // округляем ВНИЗ до уровня таблицы (шаг 200)
-  const level = clampLevel(Math.floor(target / 200) * 200);
-  const why =
-    target === raw ? `расход − ${LOSS_DEFICIT}` :
-    target === bmr ? "подняли до BMR" : `подняли до минимума ${LOSS_FLOOR}`;
-  return { tee, bmr, target, level: nearest(level), note: `Снижение веса: ${why}, округлено вниз до уровня.` };
+  const target = Math.max(atTarget, LOSS_FLOOR);
+  const why = target === atTarget ? `расход при целевом весе ${targetW} кг` : `подняли до минимума ${LOSS_FLOOR}`;
+  return { tee, bmr, target, level: floorLevel(target), note: `Снижение: ${why}, округлено вниз до уровня.` };
 }
 
 function nearest(k: number): number {

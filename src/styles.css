@@ -278,3 +278,39 @@ tfoot td { font-weight: 700; border-bottom: 0; }
 .ring-row > div { display: flex; flex-direction: column; align-items: center; gap: 4px; text-align: center; font-size: .78rem; line-height: 1.2; color: var(--muted); min-width: 0; }
 .ring-row svg { width: 100%; max-width: 72px; height: auto; }
 .nudge .remind-in { display: block; margin-top: 6px; padding: 0; }
+
+/* 25.10: три вкладки только иконками */
+nav.tabs a { font-size: 0; gap: 0; }
+nav.tabs svg { width: 26px; height: 26px; }
+nav.tabs a[aria-current="page"] svg { stroke-width: 2.4; }
+
+/* Меры руками: светлая область на руке видна на подложке (Вика: «сливается с фоном») */
+.hand-pad { display: grid; place-items: center; border-radius: 50%; background: var(--track); padding: 6px; }
+
+/* Шпаргалка группы: крупная рука сверху (макет Вики 24.10) */
+.ghero { display: grid; place-items: center; border-radius: 18px; padding: 14px; background: var(--track); background: color-mix(in srgb, var(--gc) 16%, var(--surface)); }
+.ghero .hand-img, .ghero svg { width: 132px; height: 132px; }
+.gportion { font-family: var(--display); font-size: 1.25rem; margin: 2px 0 4px; }
+.gexample { font-style: italic; color: var(--muted); margin: 0; font-size: .92rem; }
+.ginfo ul { margin: 6px 0 0; padding-left: 18px; font-size: .9rem; }
+.ginfo li + li { margin-top: 3px; }
+.ginfo p { margin: 8px 0 0; font-size: .9rem; }
+
+/* Вкладка «Порции»: плитки «По темам», как в Prosto */
+.topics-h { font-family: var(--display); font-size: 1.2rem; margin: 6px 0 -2px; }
+.topics { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.topic { display: flex; flex-direction: column; align-items: flex-start; justify-content: space-between; gap: 18px; min-height: 112px; padding: 14px; border: 0; border-radius: 18px; background: var(--surface); color: var(--ink); font: inherit; font-weight: 700; font-size: .95rem; text-align: left; cursor: pointer; border-bottom: 4px solid var(--gc, var(--line)); }
+.topic.wide { grid-column: 1 / -1; flex-direction: row; align-items: center; justify-content: flex-start; min-height: 0; gap: 12px; }
+.temoji { font-size: 2.2rem; line-height: 1; }
+.topic.wide .temoji { font-size: 1.6rem; }
+
+/* Вкладка «Профиль» */
+.profile-head { justify-content: flex-start; gap: 14px; }
+.avatar { flex: none; width: 52px; height: 52px; border-radius: 50%; display: grid; place-items: center; background: var(--prot); color: var(--on-color); font-family: var(--display); font-size: 1.4rem; font-weight: 700; }
+.streak { display: flex; align-items: baseline; gap: 10px; background: var(--surface); border-radius: 16px; padding: 12px 14px; }
+.streak b { font-family: var(--display); font-size: 1.5rem; color: var(--ok); font-variant-numeric: tabular-nums; }
+.streak span { color: var(--muted); font-size: .9rem; }
+.support h2 { font-family: var(--display); font-size: 1.15rem; margin: 0; }
+.support p { margin: 8px 0 4px; font-size: 1rem; }
+.support-link { font-size: 1rem; font-weight: 700; color: var(--ink); }
+.result-line { margin: 10px 0 0; font-size: .95rem; }

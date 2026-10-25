@@ -166,6 +166,14 @@ export function sanitizePlan(raw: unknown): Plan | null {
   return plan;
 }
 
+/** Контакт Вики по умолчанию (25.10): им же пользуется блок «Поддержка», если в плане контакта нет */
+export const VIKA_CONTACT = "@raiseyouup";
+
+/** Куда ведёт «Напиши нам» в профиле: контакт из плана, у плана Вики — её Telegram */
+export function supportContact(plan: Plan): string | null {
+  return plan.contact ?? (plan.specialist === "Вика" ? VIKA_CONTACT : null);
+}
+
 /** Ссылка для кнопки «Написать специалисту». null — если контакт не распознан. */
 export function contactHref(contact: string): string | null {
   const c = contact.trim();
