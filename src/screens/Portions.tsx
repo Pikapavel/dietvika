@@ -1,4 +1,4 @@
-// Вкладка «Порции» — справочник (макет Вики 24.10): тарелка, меры руками, плитки «По темам»
+// Вкладка «Порции» — справочник (макет Вики 24.10): меры руками (тарелку Вика убрала 25.10: она уже есть в онбординге), плитки «По темам»
 // (как в приложении Prosto), ниже — советы и пример дня. Плитка группы открывает ту же шпаргалку, что на «Сегодня».
 import { useState } from "react";
 import { today as todayIso } from "../dates";
@@ -7,7 +7,7 @@ import type { AppData } from "../store";
 import { SugarSheet } from "../components/SugarSheet";
 import { HandIcon } from "../components/HandIcon";
 import { Sheet } from "../components/Sheet";
-import { ExampleDay, HandsGrid, PLATE_TEXT, Plate, Tips } from "../components/Method";
+import { ExampleDay, HandsGrid, Tips } from "../components/Method";
 import { go } from "../store";
 import { EMOJI, GroupSheet, groupEmoji } from "./Today";
 import { FREE, GROUPS, WATER, type GroupId } from "../units";
@@ -30,15 +30,9 @@ export function Portions({ data, plan }: { data: AppData; plan: Plan }) {
       </header>
       <section className="stack">
         <div className="card">
-          <div className="eyebrow">Тарелка на день</div>
-          <Plate />
-          <p className="muted small">{PLATE_TEXT} Фруктов и овощей вместе — минимум 5 порций. Бобовые считаем за неделю.</p>
-        </div>
-
-        <div className="card">
           <div className="eyebrow">Как мерить порции</div>
           <HandsGrid />
-          <p className="muted small">Размеры порций приблизительны и зависят от продукта. Бобовые — 1 кулак. Молочные меряем стаканом.</p>
+          <p className="muted small">Размеры порций приблизительны и зависят от продукта. Бобовые считаем за неделю. Молочные меряем стаканом.</p>
         </div>
 
         <h2 className="topics-h">По темам</h2>

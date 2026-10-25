@@ -64,6 +64,9 @@ export function Builder() {
     const wn = Math.round(Number(water));
     if (wn > 0 && wn !== WATER.defaultGoal) plan.water = wn;
     if (contactHref(contact)) plan.contact = contact.trim();
+    const goalText = !valid || st !== "none" ? "" : goal === "maintain" ? "Сохранить текущий вес"
+      : targetOk ? `${goal === "lose" ? "Снизить вес" : "Набрать вес"} до ${fmtKg(T)} кг` : "";
+    if (goalText) plan.goal = goalText;
     setLink(inviteLink(plan));
   };
 
@@ -164,7 +167,7 @@ export function Builder() {
             <label className="field"><span>Вода, стаканов</span><input inputMode="numeric" value={water} onChange={(e) => setWater(e.target.value)} /></label>
           </div>
           <p className="muted small">Фрукты и овощи, молочные — в чашках (cup), зерновые и белок — в oz-eq. Клиент видит это как «порции». Фрукты и овощи: сумма по таблице, не меньше 5.</p>
-          <p className="muted small" id="leg-hint">Бобовые — порций за неделю (0–14), 1 порция = 1 кулак варёных фасоли, нута или чечевицы (100–125 г), по умолчанию 4 в неделю. В белок и овощи не входят.</p>
+          <p className="muted small" id="leg-hint">Бобовые — порций за неделю (0–14), 1 порция = 1 горсть варёных фасоли, нута или чечевицы (100–125 г), по умолчанию 4 в неделю. В белок и овощи не входят.</p>
           <label className="field"><span>Старт плана</span><input type="date" value={start} onChange={(e) => setStart(e.target.value || todayIso())} /></label>
         </div>
 
@@ -185,3 +188,5 @@ export function Builder() {
     </>
   );
 }
+
+const fmtKg = (kg: number) => (Math.round(kg * 10) / 10).toLocaleString("ru-RU");

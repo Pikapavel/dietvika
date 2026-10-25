@@ -60,6 +60,8 @@ export function Profile({ data, plan }: { data: AppData; plan: Plan }) {
   const [help, setHelp] = useState(false);
   const [reminder, setReminder] = useState(savedReminder);
   const [theme, setTheme] = useState<Theme>(savedTheme);
+  const [myGoal, setMyGoal] = useState(() => readRaw(KEYS.goal) ?? "");
+  const [goalEdit, setGoalEdit] = useState(false);
   const s = weekStats(plan, data.log, anchor, now);
   const isCurrent = weekStart(anchor) === weekStart(now);
   const series = streak(data.log, now, s.goals);
@@ -88,19 +90,29 @@ export function Profile({ data, plan }: { data: AppData; plan: Plan }) {
     writeRaw(KEYS.theme, t);
   };
 
-  // столбцы: каждая группа даёт до 1/N высоты; сзади сетка 25/50/75/100%
-  const W = 320, H = 150, bw = W / 7, top = 10, ch = H - 30;
+  // столбцы: каждая группа даёт до 1/N высоты; сетка как в образце Вики (25.10):
+  // горизонтальные линии 0/50/100% и пунктир между днями, верх столбца скруглён
+  const W = 320, H = 150, bw = W / 7, top = 10, ch = H - 30, r = 5;
   const name = plan.client || "Профиль";
+  const goalText = myGoal || plan.goal || "";
   return (
     <>
       <header className="top profile-head">
-        <div className="avatar" aria-hidden="true">{(plan.client || "Я").slice(0, 1).toUpperCase()}</div>
+        <Avatar letter={(plan.client || "Я").slice(0, 1).toUpperCase()} />
         <div>
           <h1>{name}</h1>
           <div className="muted small">Специалист: {plan.specialist} · план с {dayMonth(plan.start)}</div>
         </div>
       </header>
       <section className="stack">
+        <button className="goal-card" onClick={() => setGoalEdit(true)} aria-haspopup="dialog">
+          <span>
+            <span className="goal-label">Моя цель</span>
+            <span className={goalText ? "goal-text" : "goal-text empty"}>{goalText || "Напиши свою цель"}</span>
+          </span>
+          <Lighthouse />
+        </button>
+
         <div className="card">
           <div className="weekbar">
             <div className="eyebrow">Неделя {rangeLabel(s.days[0], s.days[6])}</div>
@@ -110,31 +122,46 @@ export function Profile({ data, plan }: { data: AppData; plan: Plan }) {
             </div>
           </div>
           <svg className="week" viewBox={`0 0 ${W} ${H}`} role="img" aria-label="Столбцы по дням недели: доля закрытия каждой группы">
-            {[0, 0.25, 0.5, 0.75, 1].map((f) => (
-              <line key={f} x1="0" x2={W} y1={top + ch * (1 - f)} y2={top + ch * (1 - f)} stroke="var(--line)" strokeDasharray={f === 1 ? "3 3" : undefined} />
+            {[0, 0.5, 1].map((f) => (
+              <line key={f} x1="0" x2={W} y1={top + ch * (1 - f)} y2={top + ch * (1 - f)} stroke="var(--line)" strokeWidth={f === 0 ? 1.5 : 1} />
+            ))}
+            {[1, 2, 3, 4, 5, 6].map((i) => (
+              <line key={i} x1={i * bw} x2={i * bw} y1={0} y2={H} stroke="var(--line)" strokeDasharray="3 3" />
             ))}
             {s.days.map((d, i) => {
-              const x = i * bw + 10, w = bw - 20;
+              const x = i * bw + 8, w = bw - 16;
               let y = top + ch;
               const future = d > now;
+              const parts = future ? [] : DAILY_IDS.map((g) => {
+                const goal = s.goals[g];
+                const h = (goal ? Math.min(sumDay(data.log, d, g) / goal, 1) : 0) * ch / DAILY_IDS.length;
+                y -= h;
+                return { g, y, h };
+              });
+              const total = top + ch - y;
               return (
                 <g key={d}>
-                  {!future && DAILY_IDS.map((g) => {
-                    const goal = s.goals[g];
-                    const h = (goal ? Math.min(sumDay(data.log, d, g) / goal, 1) : 0) * ch / DAILY_IDS.length;
-                    y -= h;
-                    return h > 0 ? <rect key={g} x={x} y={y} width={w} height={h} fill={`var(--${g})`} /> : null;
-                  })}
-                  <text x={x + w / 2} y={H - 5} textAnchor="middle" className={d === now ? "today" : undefined}>{WEEKDAY_SHORT[i]}</text>
+                  {total > 0 && (
+                    <>
+                      <clipPath id={`bar-${i}`}>
+                        <path d={`M${x} ${top + ch}V${y + Math.min(r, total)}Q${x} ${y} ${x + r} ${y}H${x + w - r}Q${x + w} ${y} ${x + w} ${y + Math.min(r, total)}V${top + ch}Z`} />
+                      </clipPath>
+                      <g clipPath={`url(#bar-${i})`}>
+                        {parts.map((p) => (p.h > 0 ? <rect key={p.g} x={x} y={p.y} width={w} height={p.h} fill={`var(--${p.g})`} /> : null))}
+                      </g>
+                    </>
+                  )}
+                  <text x={i * bw + bw / 2} y={H - 5} textAnchor="middle" className={d === now ? "today" : undefined}>{WEEKDAY_SHORT[i]}</text>
                 </g>
               );
             })}
           </svg>
-          <p className="muted small">Полный столбец до пунктира — все кольца дня закрыты.</p>
+          <p className="muted small">Столбец до верхней линии — все кольца дня закрыты.</p>
         </div>
 
         <div className="streak">
-          <b>{series}</b><span>{plural(series, ["день", "дня", "дней"])} подряд со всеми кольцами</span>
+          <div><b>{series}</b> <span className="streak-days">{plural(series, ["день", "дня", "дней"])}</span></div>
+          <div className="streak-sub">подряд со всеми кольцами</div>
         </div>
 
         <button className="btn block" onClick={() => setSummary(true)}>Создать сводку</button>
@@ -197,9 +224,10 @@ export function Profile({ data, plan }: { data: AppData; plan: Plan }) {
 
         {/* Поддержка — как в PumpClub: одна строка и ссылка; «!» — про консультацию специалиста */}
         <div className="card support">
-          <div className="weekbar">
+          {/* «!» слева от заголовка, светлый, как «Что такое Пауза?» в Prosto (Вика, 25.10) */}
+          <div className="support-head">
+            <BangButton onClick={() => setHelp(true)} label="Консультация специалиста" light />
             <h2>Поддержка</h2>
-            <BangButton onClick={() => setHelp(true)} label="Консультация специалиста" />
           </div>
           <p>Нужна помощь, есть сомнения или идея?</p>
           {contactLink
@@ -230,6 +258,10 @@ export function Profile({ data, plan }: { data: AppData; plan: Plan }) {
           <p className="muted small">Вопросы и идеи по приложению — через «Напиши нам» в блоке поддержки.</p>
         </Sheet>
       )}
+      {goalEdit && (
+        <GoalSheet value={goalText} fromPlan={plan.goal ?? ""} onClose={() => setGoalEdit(false)}
+          onSave={(v) => { setMyGoal(v); writeRaw(KEYS.goal, v); setGoalEdit(false); }} />
+      )}
       {confirm && (
         <ConfirmDialog
           title="Сбросить все данные?"
@@ -240,6 +272,79 @@ export function Profile({ data, plan }: { data: AppData; plan: Plan }) {
         />
       )}
     </>
+  );
+}
+
+/** Аватар: буква или фото. Фото уменьшаем до 192×192 и храним на телефоне */
+function Avatar({ letter }: { letter: string }) {
+  const toast = useToast();
+  const input = useRef<HTMLInputElement>(null);
+  const [src, setSrc] = useState(() => readRaw(KEYS.avatar) ?? "");
+  const pick = async (f: File | undefined) => {
+    if (!f) return;
+    try {
+      const url = await squareThumb(f, 192);
+      writeRaw(KEYS.avatar, url);
+      setSrc(url);
+    } catch {
+      toast("Не получилось открыть картинку");
+    }
+  };
+  return (
+    <button className="avatar" onClick={() => input.current?.click()} aria-label={src ? "Сменить фото профиля" : "Добавить фото профиля"}>
+      {src ? <img src={src} alt="" /> : <span aria-hidden="true">{letter}</span>}
+      <span className="avatar-add" aria-hidden="true">+</span>
+      <input ref={input} type="file" accept="image/*" hidden onChange={(e) => { pick(e.target.files?.[0]); e.target.value = ""; }} />
+    </button>
+  );
+}
+
+function squareThumb(file: File, size: number): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const url = URL.createObjectURL(file);
+    const img = new Image();
+    img.onload = () => {
+      const side = Math.min(img.naturalWidth, img.naturalHeight);
+      const c = document.createElement("canvas");
+      c.width = c.height = size;
+      c.getContext("2d")!.drawImage(img, (img.naturalWidth - side) / 2, (img.naturalHeight - side) / 2, side, side, 0, 0, size, size);
+      URL.revokeObjectURL(url);
+      resolve(c.toDataURL("image/jpeg", 0.85));
+    };
+    img.onerror = () => { URL.revokeObjectURL(url); reject(new Error("image")); };
+    img.src = url;
+  });
+}
+
+/** Маяк вместо кубка (идея из отзыва Андрея, 25.10) */
+function Lighthouse() {
+  return (
+    <svg className="lighthouse" viewBox="0 0 64 64" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinejoin="round" strokeLinecap="round">
+      <path d="M8 16l14 4M8 28l14-4M56 16l-14 4M56 28l-14-4" stroke="var(--grain)" />
+      <path d="M26 14h12v12H26z" />
+      <path d="M24 14l8-7 8 7" />
+      <path d="M26 26l-4 30h20l-4-30" />
+      <path d="M24.5 38h15M23.3 47h17.4" />
+      <path d="M14 56h36" />
+    </svg>
+  );
+}
+
+function GoalSheet({ value, fromPlan, onSave, onClose }: { value: string; fromPlan: string; onSave: (v: string) => void; onClose: () => void }) {
+  const [v, setV] = useState(value);
+  return (
+    <Sheet label="Моя цель" onClose={onClose}>
+      <div className="ghead">
+        <div><h2>Моя цель</h2></div>
+        <button className="close" onClick={onClose} aria-label="Закрыть">×</button>
+      </div>
+      <form className="stack" onSubmit={(e) => { e.preventDefault(); onSave(v.trim().slice(0, 80)); }}>
+        <label className="field"><span>Ради чего я ем по плану</span>
+          <input value={v} maxLength={80} onChange={(e) => setV(e.target.value)} placeholder="например, снизить вес до 65 кг" /></label>
+        {fromPlan && <p className="muted small">Цель из плана: {fromPlan}. Если поле оставить пустым, покажем её.</p>}
+        <button className="btn block" type="submit">Сохранить</button>
+      </form>
+    </Sheet>
   );
 }
 

@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
 import foodsData from "../data/foods.json";
+import { CHEAT } from "../data/cheatsheet";
 import { addDays, longDate, today as todayIso, type ISODate } from "../dates";
 import { sumDay, sumWeek, type Entry, type LogGroup } from "../log";
 import { legWeekGoal, planGoals, waterGoal, type Plan } from "../plan";
@@ -277,24 +278,15 @@ export function GroupSheet({ g, date, isToday, data, goal, veg, onClose }: {
       </button>
       <Marks title={isToday ? "Отмечено сегодня" : "Отмечено вчера"} items={entriesOf(data, date, g)}
         label={(e) => `${e.f} · ${portions(toDisplay(g, e.q))}`} onRemove={data.removeAt} />
-      <div>
-        <h3 className="list-h">Продукты · 1 мера × «Сколько»</h3>
-        {foods.map((f) => {
-          const usda = f.q * sel;
-          return (
-            <div className="food" key={f.name}>
-              <span>
-                {f.name}
-                <small>{f.hand}{f.grams ? ` · ${f.grams.startsWith("≈") ? "" : "≈ "}${f.grams}` : ""}{f.note ? ` · ${f.note}` : ""}</small>
-              </span>
-              <button className="add" style={{ background: color }} onClick={() => add(f.name, usda)}
-                aria-label={`${f.name}: плюс ${portions(toDisplay(g, usda))}`}>
-                +{fmt(toDisplay(g, usda))}
-              </button>
-            </div>
-          );
-        })}
-      </div>
+      {/* Списки продуктов по макету Вики 25.10: подзаголовки, простой список, мера справа */}
+      {(CHEAT[g] ?? [{ title: "Продукты", items: foods.map((f) => [f.name, foodMeasure(g, f)] as [string, string]) }]).map((sec) => (
+        <div key={sec.title}>
+          <h3 className="plist-h">{sec.title}</h3>
+          <ul className="plist">
+            {sec.items.map(([name, m]) => <li key={name}><span>{name}</span>{m && <small>{m}</small>}</li>)}
+          </ul>
+        </div>
+      ))}
       <div className="card ginfo">
         <div className="eyebrow">Полезно знать</div>
         <ul>{handLines(g, veg).map((l) => <li key={l}>{l}</li>)}</ul>
@@ -304,6 +296,13 @@ export function GroupSheet({ g, date, isToday, data, goal, veg, onClose }: {
       </div>
     </Sheet>
   );
+}
+
+/** Мера продукта из справочника: «1 ломтик · ≈ 30 г», и сколько порций, если не одна */
+function foodMeasure(g: GroupId, f: Food): string {
+  const grams = f.grams ? ` · ${f.grams.startsWith("≈") ? "" : "≈ "}${f.grams}` : "";
+  const count = toDisplay(g, f.q) !== 1 ? ` = ${portions(toDisplay(g, f.q))}` : "";
+  return `${f.hand}${grams}${count}`;
 }
 
 function WaterSheet({ date, isToday, data, goal, onClose }: { date: ISODate; isToday: boolean; data: AppData; goal: number; onClose: () => void }) {
