@@ -2,9 +2,9 @@ import { Sheet } from "./Sheet";
 import { SUGAR } from "../units";
 
 /** Круглая кнопка «!» — как «i», но для предупреждающего совета */
-export function BangButton({ onClick, label }: { onClick: () => void; label: string }) {
+export function BangButton({ onClick, label, light }: { onClick: () => void; label: string; light?: boolean }) {
   return (
-    <button className="bang" onClick={onClick} aria-label={label} aria-haspopup="dialog">!</button>
+    <button className={light ? "bang light" : "bang"} onClick={onClick} aria-label={label} aria-haspopup="dialog">!</button>
   );
 }
 
