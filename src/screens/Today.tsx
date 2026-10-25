@@ -13,7 +13,7 @@ import { ReminderSheet } from "../components/ReminderSheet";
 import { savedReminder } from "../reminder";
 import {
   DAILY_IDS, FREE, GLASS, SUGAR, VEG_NOTE, VEG_WHY, vegProteinOrder, GROUPS, GROUP_IDS, PICKER, WATER, fmt, fromDisplay, handLines, nudgeText, plural,
-  portions, portionsAcc, toDisplay, type DailyId, type GroupId,
+  portions, portionsAcc, portionExample, portionTitle, toDisplay, type DailyId, type GroupId,
 } from "../units";
 
 interface Food { g: GroupId | "free"; name: string; hand: string; q: number; grams?: string; note?: string }
@@ -198,8 +198,8 @@ function Tile(p: {
   );
 }
 
-const EMOJI: Record<GroupId, string> = { fv: "🥦", leg: "🫘", grain: "🍞", prot: "🍗", dairy: "🥛" };
-function groupEmoji(g: GroupId, veg: boolean): string {
+export const EMOJI: Record<GroupId, string> = { fv: "🥦", leg: "🫘", grain: "🍞", prot: "🍗", dairy: "🥛" };
+export function groupEmoji(g: GroupId, veg: boolean): string {
   return g === "prot" && veg ? "🥚" : EMOJI[g];
 }
 /** стаканы → литры: 0,25 л на стакан, «1,5» */
@@ -238,7 +238,7 @@ function entriesOf(data: AppData, d: ISODate, g: LogGroup) {
   return (data.log[d] ?? []).map((e, i) => ({ e, i, d })).filter((x) => x.e.g === g);
 }
 
-function GroupSheet({ g, date, isToday, data, goal, veg, onClose }: {
+export function GroupSheet({ g, date, isToday, data, goal, veg, onClose }: {
   g: GroupId; date: ISODate; isToday: boolean; data: AppData; goal: number; veg: boolean; onClose: () => void;
 }) {
   const [sel, setSel] = useState(1);
@@ -256,15 +256,13 @@ function GroupSheet({ g, date, isToday, data, goal, veg, onClose }: {
     <Sheet label={GROUPS[g].name} onClose={onClose}>
       <SheetHead eyebrow={`${g === "leg" ? "За неделю" : isToday ? "Сегодня" : "Вчера"} ${fmt(toDisplay(g, n))} из ${fmt(toDisplay(g, goal))}`}
         title={GROUPS[g].name} color={color} onClose={onClose} />
-      <div className="hint">
-        <HandIcon shape={GROUPS[g].shape} color={color} />
-        <div>
-          <strong>Одна порция рукой</strong>
-          <ul>{handLines(g, veg).map((l) => <li key={l}>{l}</li>)}</ul>
-          {GROUPS[g].benefits && <ul className="muted" style={{ marginTop: 6 }}>{GROUPS[g].benefits.map((b) => <li key={b}>{b}</li>)}</ul>}
-          <p className="muted" style={{ marginTop: 6 }}>{veg && g === "prot" ? VEG_WHY : GROUPS[g].why}</p>
-          {veg && g === "prot" && <p style={{ marginTop: 6 }}><strong>Вегетарианский план.</strong> {VEG_NOTE}</p>}
-        </div>
+      {/* Шпаргалка по макету Вики 24.10: крупная рука, «Порция: …», пример; польза — внизу */}
+      <div className="ghero" style={{ ["--gc" as string]: color }}>
+        <HandIcon shape={GROUPS[g].shape} color={color} size={132} />
+      </div>
+      <div>
+        <h3 className="gportion">{portionTitle(g)}</h3>
+        <p className="gexample">{portionExample(g)}</p>
       </div>
       <div>
         <div className="eyebrow" style={{ marginBottom: 6 }} id={`pick-${g}`}>Сколько</div>
@@ -280,7 +278,7 @@ function GroupSheet({ g, date, isToday, data, goal, veg, onClose }: {
       <Marks title={isToday ? "Отмечено сегодня" : "Отмечено вчера"} items={entriesOf(data, date, g)}
         label={(e) => `${e.f} · ${portions(toDisplay(g, e.q))}`} onRemove={data.removeAt} />
       <div>
-        <h3 className="list-h">Продукты · 1 мера рукой × «Сколько»</h3>
+        <h3 className="list-h">Продукты · 1 мера × «Сколько»</h3>
         {foods.map((f) => {
           const usda = f.q * sel;
           return (
@@ -296,6 +294,13 @@ function GroupSheet({ g, date, isToday, data, goal, veg, onClose }: {
             </div>
           );
         })}
+      </div>
+      <div className="card ginfo">
+        <div className="eyebrow">Полезно знать</div>
+        <ul>{handLines(g, veg).map((l) => <li key={l}>{l}</li>)}</ul>
+        {GROUPS[g].benefits && <ul>{GROUPS[g].benefits.map((b) => <li key={b}>{b}</li>)}</ul>}
+        <p className="muted">{veg && g === "prot" ? VEG_WHY : GROUPS[g].why}</p>
+        {veg && g === "prot" && <p><strong>Вегетарианский план.</strong> {VEG_NOTE}</p>}
       </div>
     </Sheet>
   );

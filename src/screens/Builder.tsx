@@ -2,9 +2,9 @@
 import { useMemo, useState } from "react";
 import { today as todayIso } from "../dates";
 import { ACTIVITY_LABEL, STATUS_KCAL, STATUS_LABEL, suggestLevel, type Activity, type Goal, type Sex, type Status } from "../nasem";
-import { LEG_WEEK_DEFAULT, LEVELS, contactHref, inviteLink, suggestedGoals, type Goals, type Plan } from "../plan";
+import { LEG_WEEK_DEFAULT, LEVELS, VIKA_CONTACT, contactHref, inviteLink, suggestedGoals, type Goals, type Plan } from "../plan";
 import { useToast } from "../components/Toast";
-import { copyText } from "./PlanScreen";
+import { copyText } from "./Profile";
 import { DAILY_IDS, GROUPS, WATER, type DailyId } from "../units";
 
 const kcal = (n: number) => Math.round(n).toLocaleString("ru-RU");
@@ -13,11 +13,12 @@ export function Builder() {
   const toast = useToast();
   const [client, setClient] = useState("");
   const [specialist, setSpecialist] = useState("Вика");
-  const [contact, setContact] = useState("");
+  const [contact, setContact] = useState(VIKA_CONTACT);
   const [sex, setSex] = useState<Sex>("f");
   const [age, setAge] = useState("35");
   const [height, setHeight] = useState("165");
   const [weight, setWeight] = useState("70");
+  const [targetWeight, setTargetWeight] = useState("");
   const [act, setAct] = useState<Activity>("low");
   const [goal, setGoal] = useState<Goal>("lose");
   const [status, setStatus] = useState<Status>("none");
@@ -32,7 +33,16 @@ export function Builder() {
   const A = Number(age), H = Number(height), W = Number(weight);
   const valid = A >= 19 && A <= 100 && H >= 120 && H <= 230 && W >= 30 && W <= 300;
   const st: Status = sex === "f" ? status : "none";
-  const sug = useMemo(() => (valid ? suggestLevel(sex, act, A, H, W, goal, st) : null), [valid, sex, act, A, H, W, goal, st]);
+  // целевой вес — только для снижения и набора, без беременности и кормления
+  const needTarget = goal !== "maintain" && st === "none";
+  const T = Number(targetWeight.replace(",", "."));
+  const targetErr = !needTarget || !targetWeight.trim() ? "" :
+    !(T >= 30 && T <= 300) ? "Вес в килограммах, от 30 до 300." :
+    goal === "lose" && T >= W ? "Для снижения целевой вес должен быть меньше текущего." :
+    goal === "gain" && T <= W ? "Для набора целевой вес должен быть больше текущего." : "";
+  const targetOk = needTarget && targetWeight.trim() !== "" && !targetErr;
+  const sug = useMemo(() => (valid ? suggestLevel(sex, act, A, H, W, goal, st, targetOk ? T : undefined) : null),
+    [valid, sex, act, A, H, W, goal, st, targetOk, T]);
   const level = levelOverride ?? sug?.level ?? 1800;
   // предложенные цели: таблица USDA, у вегетарианца белок ×1,5
   const table = suggestedGoals(level, veg);
@@ -77,7 +87,7 @@ export function Builder() {
             <input value={contact} onChange={(e) => setContact(e.target.value)} placeholder="@ник в Telegram, телефон или почта" aria-describedby="contact-hint" /></label>
           {contact.trim() !== "" && !contactHref(contact)
             ? <p className="small" id="contact-hint" style={{ color: "var(--bad)" }}>Не распознал контакт: нужен @ник, телефон, почта или ссылка https://</p>
-            : <p className="muted small" id="contact-hint">У клиента на экране «План» появится кнопка «Написать специалисту».</p>}
+            : <p className="muted small" id="contact-hint">У клиента в профиле, в блоке «Поддержка», ссылка «Напиши нам» поведёт сюда.</p>}
           <div className="grid2">
             <label className="field"><span>Пол</span>
               <select value={sex} onChange={(e) => setSex(e.target.value as Sex)}><option value="f">Женский</option><option value="m">Мужской</option></select></label>
@@ -104,8 +114,17 @@ export function Builder() {
                 {(Object.keys(STATUS_LABEL) as Status[]).map((s) => <option key={s} value={s}>{STATUS_LABEL[s]}{STATUS_KCAL[s] ? ` (+${STATUS_KCAL[s]} ккал)` : ""}</option>)}
               </select></label>
           )}
-          {st !== "none" && goal === "lose" && <p className="muted small">При беременности и кормлении дефицит не применяем: план считается от расхода с прибавкой.</p>}
-          {goal === "gain" && <p className="muted small">Целевой вес не нужен. Белка при наборе массы обычно больше — поправь «Белок» ниже вручную.</p>}
+          {needTarget && (
+            <>
+              <label className="field"><span>Сколько хочешь весить, кг</span>
+                <input inputMode="decimal" value={targetWeight} onChange={(e) => setTargetWeight(e.target.value)}
+                  placeholder={goal === "lose" ? "например, 65" : "например, 75"} aria-invalid={!!targetErr} aria-describedby="target-hint" /></label>
+              {targetErr
+                ? <p className="small" id="target-hint" style={{ color: "var(--bad)" }}>{targetErr}</p>
+                : <p className="muted small" id="target-hint">План считаем по тем же формулам, но с целевым весом.{goal === "gain" ? " Белка при наборе обычно больше — поправь «Белок» ниже вручную." : ""}</p>}
+            </>
+          )}
+          {st !== "none" && goal !== "maintain" && <p className="muted small">При беременности и кормлении план считается от текущего веса с прибавкой, без снижения.</p>}
         </div>
 
         <div className="card">
@@ -115,11 +134,11 @@ export function Builder() {
               <dl className="kv" style={{ margin: 0 }}>
                 <dt>Расход (TEE){st !== "none" ? " с прибавкой" : ""}</dt><dd>{kcal(sug.tee)} ккал</dd>
                 <dt>BMR (Mifflin–St Jeor)</dt><dd>{kcal(sug.bmr)} ккал</dd>
-                {goal === "lose" && st === "none" && <><dt>Цель после −500</dt><dd>{kcal(sug.target)} ккал</dd></>}
-                {goal === "gain" && st === "none" && <><dt>Цель +10%</dt><dd>{kcal(sug.target)} ккал</dd></>}
+                {targetOk && <><dt>Расход при целевом весе</dt><dd>{kcal(sug.target)} ккал</dd></>}
                 <dt>Предложенный уровень</dt><dd>{sug.level} ккал</dd>
               </dl>
-              <p className="muted small">{sug.note}{goal === "lose" && st === "none" ? " Снижение: не ниже BMR и не ниже 1600." : ""}</p>
+              <p className="result-line">{goal === "maintain" || st !== "none" ? "Для поддержания текущего веса" : "Для достижения цели"} может подойти план на <b>{sug.level} ккал</b> в день.</p>
+              <p className="muted small">{sug.note}{needTarget && !targetOk ? " Введи целевой вес — пока план посчитан для текущего веса." : ""} Можно выбрать другой уровень по реальной ситуации клиента.</p>
             </>
           ) : <p className="muted">Заполни возраст (19+), рост и вес.</p>}
           <label className="field"><span>Уровень плана</span>

@@ -1,15 +1,5 @@
 import { useState } from "react";
-import { HandIcon } from "../components/HandIcon";
-import { ExampleDay, Plate } from "../components/Method";
-import type { Shape } from "../units";
-
-// Четыре меры руками (Вика 20.10 и 24.10): палец — кончик большого пальца, ориентир для масла
-const HANDS: [Shape, string, string, string][] = [
-  ["fist", "var(--fv)", "Кулак", "1 порция фруктов или овощей"],
-  ["cupped", "var(--grain)", "Горсть", "1 порция зерновых"],
-  ["palm", "var(--prot)", "Ладонь", "3 порции белка: мясо, птица, рыба"],
-  ["finger", "var(--grain)", "Палец", "Кончик большого пальца: порция масла"],
-];
+import { ExampleDay, HandsGrid, PLATE_TEXT, Plate } from "../components/Method";
 
 export function Onboarding({ onDone }: { onDone: () => void }) {
   const [i, setI] = useState(0);
@@ -20,18 +10,14 @@ export function Onboarding({ onDone }: { onDone: () => void }) {
       <h1>Тарелка на день</h1>
       <p>Рекомендации разных стран различаются в деталях, но суть одна: питание должно быть сбалансированным и разнообразным.</p>
       <div className="card"><Plate /></div>
-      <p>Половина — овощи и фрукты, четверть — зерновые, четверть — белок, а также 3 порции молочных продуктов (или альтернативы).</p>
+      <p>{PLATE_TEXT}</p>
       <p className="muted">Масло, сахар и соль — про них есть короткие советы в разделе «Порции».</p>
     </div>,
     <div className="slide" key="1">
       <div className="eyebrow">2 из 4</div>
       <h1>Твоя рука — ориентир для порций</h1>
       <p className="muted">Необязательно каждый раз взвешивать еду. Ладонь, кулак, горсть и палец помогают приблизительно оценивать количество продуктов прямо в тарелке.</p>
-      <div className="hands4">
-        {HANDS.map(([s, c, name, t]) => (
-          <div key={name}><HandIcon shape={s} color={c} size={84} /><strong>{name}</strong><span className="muted">{t}</span></div>
-        ))}
-      </div>
+      <HandsGrid short />
       <p className="muted small">Размеры порций приблизительны и зависят от продукта. Бобовые — 1 кулак, их считаем за неделю. Молочные меряем стаканом.</p>
     </div>,
     <div className="slide" key="2">
