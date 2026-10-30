@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import foodsData from "../data/foods.json";
-import { CHEAT } from "../data/cheatsheet";
+import { cheatFor } from "../data/cheatsheet";
 import { addDays, longDate, today as todayIso, type ISODate } from "../dates";
 import { sumDay, sumWeek, type Entry, type LogGroup } from "../log";
 import { legWeekGoal, planGoals, waterGoal, type Plan } from "../plan";
@@ -101,7 +101,7 @@ export function Today({ data, plan }: { data: AppData; plan: Plan }) {
           );
         })()}
 
-        <p className="muted small">Плюс и минус отмечают порцию сразу: например, 1 ладонь белка — это 3 порции. Нажми на название группы — там шпаргалка по порциям и продуктам.</p>
+        <p className="muted small">Плюс и минус отмечают одну порцию: ладонь белка, кулак фруктов или овощей, горсть зерновых, стакан молочного. Нажми на название группы — там шпаргалка по порциям и продуктам.</p>
 
         <div className="rows">
           {GROUP_IDS.map((g) => {
@@ -281,7 +281,7 @@ export function GroupSheet({ g, date, isToday, data, goal, veg, onClose }: {
       <Marks title={isToday ? "Отмечено сегодня" : "Отмечено вчера"} items={entriesOf(data, date, g)}
         label={(e) => `${e.f} · ${portions(toDisplay(g, e.q))}`} onRemove={data.removeAt} />
       {/* Списки продуктов по макету Вики 25.10: подзаголовки, простой список, мера справа */}
-      {(CHEAT[g] ?? [{ title: "Продукты", items: foods.map((f) => [f.name, foodMeasure(g, f)] as [string, string]) }]).map((sec) => (
+      {(cheatFor(g, veg) ?? [{ title: "Продукты", items: foods.map((f) => [f.name, foodMeasure(g, f)] as [string, string]) }]).map((sec) => (
         <div key={sec.title}>
           <h3 className="plist-h">{sec.title}</h3>
           <ul className="plist">
@@ -289,13 +289,21 @@ export function GroupSheet({ g, date, isToday, data, goal, veg, onClose }: {
           </ul>
         </div>
       ))}
-      <div className="card ginfo">
-        <div className="eyebrow">Полезно знать</div>
-        <ul>{handLines(g, veg).map((l) => <li key={l}>{l}</li>)}</ul>
-        {GROUPS[g].benefits && <ul>{GROUPS[g].benefits.map((b) => <li key={b}>{b}</li>)}</ul>}
-        <p className="muted">{veg && g === "prot" ? VEG_WHY : GROUPS[g].why}</p>
-        {veg && g === "prot" && <p><strong>Вегетарианский план.</strong> {VEG_NOTE}</p>}
-      </div>
+      {/* «Полезно знать» — приглушённо, «мягко умничаем» (Вика, 29.10). Бобовые — только её три пункта */}
+      {g === "leg" && GROUPS.leg.benefits ? (
+        <div className="card ginfo">
+          <div className="ginfo-h">{GROUPS.leg.name}</div>
+          <ul>{GROUPS.leg.benefits.map((b) => <li key={b}>{b}</li>)}</ul>
+        </div>
+      ) : (
+        <div className="card ginfo">
+          <div className="ginfo-h">Полезно знать</div>
+          <ul>{handLines(g, veg).map((l) => <li key={l}>{l}</li>)}</ul>
+          {GROUPS[g].benefits && <ul>{GROUPS[g].benefits.map((b) => <li key={b}>{b}</li>)}</ul>}
+          <p>{veg && g === "prot" ? VEG_WHY : GROUPS[g].why}</p>
+          {veg && g === "prot" && <p><strong>Вегетарианский план.</strong> {VEG_NOTE}</p>}
+        </div>
+      )}
     </Sheet>
   );
 }

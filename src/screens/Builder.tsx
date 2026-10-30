@@ -44,7 +44,7 @@ export function Builder() {
   const sug = useMemo(() => (valid ? suggestLevel(sex, act, A, H, W, goal, st, targetOk ? T : undefined) : null),
     [valid, sex, act, A, H, W, goal, st, targetOk, T]);
   const level = levelOverride ?? sug?.level ?? 1800;
-  // предложенные цели: таблица USDA, у вегетарианца белок ×1,5
+  // предложенные цели: таблица Вики (версия 2), у вегетарианца белок ×1,5
   const table = suggestedGoals(level, veg);
 
   const effective = (g: DailyId) => {
@@ -56,7 +56,7 @@ export function Builder() {
   const make = () => {
     const overrides: Partial<Goals> = {};
     for (const g of DAILY_IDS) if (effective(g) !== table[g]) overrides[g] = effective(g);
-    const plan: Plan = { v: 1, client: client.trim(), specialist: specialist.trim() || "Вика", kcal: level, start };
+    const plan: Plan = { v: 1, client: client.trim(), specialist: specialist.trim() || "Вика", kcal: level, start, u: 2 };
     if (veg) plan.veg = true;
     if (Object.keys(overrides).length) plan.goals = overrides;
     const leg = Math.round(Number(legWeek));
@@ -166,7 +166,7 @@ export function Builder() {
               <input inputMode="numeric" value={legWeek} onChange={(e) => setLegWeek(e.target.value)} aria-describedby="leg-hint" /></label>
             <label className="field"><span>Вода, стаканов</span><input inputMode="numeric" value={water} onChange={(e) => setWater(e.target.value)} /></label>
           </div>
-          <p className="muted small">Фрукты и овощи, молочные — в чашках (cup), зерновые и белок — в oz-eq. Клиент видит это как «порции». Фрукты и овощи: сумма по таблице, не меньше 5.</p>
+          <p className="muted small">Цели — в порциях «1 рука = 1 порция» по таблице Вики (версия 2): ладони белка, горсти зерновых, кулаки фруктов и овощей, стаканы молочного. Фрукты и овощи — не меньше 5.</p>
           <p className="muted small" id="leg-hint">Бобовые — порций за неделю (0–14), 1 порция = 1 горсть варёных фасоли, нута или чечевицы (100–125 г), по умолчанию 4 в неделю. В белок и овощи не входят.</p>
           <label className="field"><span>Старт плана</span><input type="date" value={start} onChange={(e) => setStart(e.target.value || todayIso())} /></label>
         </div>
