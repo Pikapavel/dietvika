@@ -6,6 +6,7 @@ import { sumDay, sumWeek, type Entry, type LogGroup } from "../log";
 import { legWeekGoal, planGoals, waterGoal, type Plan } from "../plan";
 import type { AppData } from "../store";
 import { HandIcon } from "../components/HandIcon";
+import { InstallHint } from "../components/InstallHint";
 import { RingRow } from "../components/Rings";
 import { Sheet } from "../components/Sheet";
 import { useToast } from "../components/Toast";
@@ -70,6 +71,7 @@ export function Today({ data, plan }: { data: AppData; plan: Plan }) {
       </header>
 
       <section className="stack">
+        <InstallHint plan={plan} />
         {!isToday && <div className="banner">Заполняешь вчерашний день: все отметки попадут во вчера.</div>}
 
         <div className="ring-card">

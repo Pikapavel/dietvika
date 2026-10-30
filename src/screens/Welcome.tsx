@@ -1,3 +1,4 @@
+import { PasteLink } from "../components/PasteLink";
 import { Rings } from "../components/Rings";
 
 export function Welcome({ onDemo }: { onDemo: () => void }) {
@@ -11,7 +12,8 @@ export function Welcome({ onDemo }: { onDemo: () => void }) {
       </div>
       <div className="card">
         <strong>Нужна ссылка от специалиста</strong>
-        <p className="muted">Твой план — сколько порций каждой группы в день — приходит ссылкой от диетолога. Открой её на этом телефоне, и план сохранится здесь.</p>
+        <p className="muted">Твой план — сколько порций каждой группы в день — приходит ссылкой от диетолога.</p>
+        <PasteLink />
         <p className="muted small">Все отметки хранятся только на твоём телефоне. Сервера нет.</p>
       </div>
       <button className="btn block" onClick={onDemo}>Посмотреть демо</button>

@@ -10,6 +10,7 @@ import { storageWorks, KEYS, readRaw, writeRaw } from "../storage";
 import type { AppData } from "../store";
 import { ConfirmDialog, Sheet } from "../components/Sheet";
 import { MonthCalendar } from "../components/MonthCalendar";
+import { PasteLink } from "../components/PasteLink";
 import { ReminderSheet } from "../components/ReminderSheet";
 import { BangButton } from "../components/SugarSheet";
 import { savedReminder } from "../reminder";
@@ -234,6 +235,11 @@ export function Profile({ data, plan }: { data: AppData; plan: Plan }) {
             ? <a className="support-link" href={contactLink} target="_blank" rel="noopener noreferrer">Напиши нам</a>
             : <span className="muted">Контакт появится в следующей версии.</span>}
         </div>
+
+        <details className="card paste">
+          <summary>Новый план от специалиста</summary>
+          <PasteLink compact />
+        </details>
 
         <div className="card">
           <div className="eyebrow">Данные</div>
