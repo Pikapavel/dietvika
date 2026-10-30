@@ -210,6 +210,12 @@ export function planFromHash(hash: string): string | null {
   return m ? m[1] : null;
 }
 
+/** План из любого вставленного текста: ссылка целиком, с подписью или без https:// */
+export function planFromText(text: string): string | null {
+  const m = /plan=([A-Za-z0-9_-]{8,})/.exec(text.trim());
+  return m && decodePlan(m[1]) ? m[1] : null;
+}
+
 // ---------- хранение ----------
 
 export function loadPlan(): Plan | null {

@@ -14,6 +14,8 @@ export const KEYS = {
   avatar: PREFIX + "avatar",
   /** цель, которую клиент написал сам (перекрывает цель из плана) */
   goal: PREFIX + "goal",
+  /** подсказку «Приложение на экране Домой» скрыли */
+  installHint: PREFIX + "installHint",
 } as const;
 
 const memory = new Map<string, string>();

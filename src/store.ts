@@ -81,6 +81,15 @@ export function useAppData() {
 
 export type AppData = ReturnType<typeof useAppData>;
 
+/** Приложение открыто с иконки на экране «Домой», а не в браузере */
+export function isStandalone(): boolean {
+  try {
+    return window.matchMedia("(display-mode: standalone)").matches || (navigator as { standalone?: boolean }).standalone === true;
+  } catch {
+    return false;
+  }
+}
+
 /** Текущий хэш адреса */
 export function useHash(): string {
   const [hash, setHash] = useState(() => window.location.hash);
