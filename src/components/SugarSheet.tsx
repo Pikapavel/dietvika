@@ -16,19 +16,28 @@ export function SugarSheet({ onClose }: { onClose: () => void }) {
         <div><div className="eyebrow">Совет</div><h2>Сахар</h2></div>
         <button className="close" onClick={onClose} aria-label="Закрыть">×</button>
       </div>
-      <div className="hint"><div><strong>{SUGAR.line}</strong><p className="muted" style={{ marginTop: 4 }}>{SUGAR.limit}</p></div></div>
+      <div className="card sugar-top">
+        <b>{SUGAR.top}</b>
+        <p className="muted">{SUGAR.topSub}</p>
+        <p className="small">{SUGAR.natural}</p>
+      </div>
       <div className="card">
         <div className="eyebrow">Где прячется сахар</div>
         <ul style={{ margin: 0, paddingLeft: 18 }}>{SUGAR.hidden.map((h) => <li key={h}>{h}</li>)}</ul>
       </div>
       <div className="card">
-        <div className="eyebrow">Тысяча имён сахара</div>
+        <div className="eyebrow">Многоликий сахар</div>
         <p className="muted small">Так добавленный сахар пишут в составе:</p>
-        <div className="tags">{SUGAR.names.map((n) => <span className="chip" key={n}>{n}</span>)}</div>
+        {SUGAR.names.map((n) => <p className="sugar-names" key={n}>{n}</p>)}
       </div>
       <div className="card">
         <div className="eyebrow">Как читать этикетку</div>
-        <p>{SUGAR.label}</p>
+        <ul style={{ margin: 0, paddingLeft: 18 }}>{SUGAR.label.map((l) => <li key={l}>{l}</li>)}</ul>
+      </div>
+      <div className="card ginfo">
+        <div className="ginfo-h">Полезно знать</div>
+        <p>{SUGAR.info}</p>
+        {SUGAR.note.map((n) => <p className="small" key={n}>{n}</p>)}
       </div>
     </Sheet>
   );
