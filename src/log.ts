@@ -1,9 +1,9 @@
 // Журнал отметок по датам: { "2026-10-15": [{g, f, q, t}, ...] }.
-// q — в единицах USDA (cup / oz-eq) для групп, в стаканах для воды, 1 — для свободного приёма пищи.
+// q — в порциях («1 рука = 1 порция») для групп, в стаканах для воды, 1 — для свободного приёма пищи.
 
 import { addDays, isISODate, weekDays, type ISODate } from "./dates";
 import { DAILY_IDS, GROUP_IDS, type GroupId } from "./units";
-import { KEYS, readJSON, writeJSON } from "./storage";
+import { KEYS, readJSON, readRaw, writeJSON, writeRaw } from "./storage";
 import type { Goals } from "./plan";
 
 export type LogGroup = GroupId | "water" | "free";
@@ -23,6 +23,23 @@ export type Log = Record<ISODate, Entry[]>;
 /** Старые группы журнала → новые: фрукты и овощи слились в fv (16.10), количество в cup то же */
 const LEGACY_GROUP: Record<string, LogGroup> = { fruit: "fv", veg: "fv" };
 export type Weights = Record<ISODate, number>;
+
+/** Один раз: белок из oz-eq USDA (ладонь = 3) в ладони. Остальные группы и раньше считались 1:1 */
+export function migrateUnits(): void {
+  if (readRaw(KEYS.units) === "hands1") return;
+  const raw = readJSON<unknown>(KEYS.log, null);
+  if (raw && typeof raw === "object") {
+    const out: Record<string, unknown> = {};
+    for (const [d, arr] of Object.entries(raw as Record<string, unknown>)) {
+      out[d] = Array.isArray(arr)
+        ? arr.map((e) => (e && typeof e === "object" && (e as Entry).g === "prot" && typeof (e as Entry).q === "number"
+          ? { ...(e as Entry), q: (e as Entry).q / 3 } : e))
+        : arr;
+    }
+    writeJSON(KEYS.log, out);
+  }
+  writeRaw(KEYS.units, "hands1");
+}
 
 export function loadLog(): Log {
   const raw = readJSON<unknown>(KEYS.log, {});

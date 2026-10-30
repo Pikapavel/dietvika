@@ -1,12 +1,12 @@
-// План клиента: уровень USDA, цели по группам, вода, лимит свободного приёма пищи.
+// План клиента: уровень плана Вики (ккал), цели по группам, вода. Цели — в порциях «1 рука = 1 порция» (с 30.10).
 // План приходит ссылкой от специалиста: #plan=<base64url(JSON)>, сервера нет.
 
-import plansData from "./data/plans-usda-2020.json";
+import { VIKA_PLANS } from "./data/plans-vika";
 import { addDays, isISODate, today, type ISODate } from "./dates";
 import { DAILY_IDS, WATER, type DailyId } from "./units";
 import { KEYS, readJSON, writeJSON } from "./storage";
 
-/** Дневные цели, в единицах USDA. Бобовые — отдельно, за неделю (legWeek). */
+/** Дневные цели в порциях. Бобовые — отдельно, за неделю (legWeek). */
 export type Goals = Record<DailyId, number>;
 
 export interface Plan {
@@ -25,19 +25,15 @@ export interface Plan {
   contact?: string;
   /** цель клиента для блока «Моя цель» в профиле: «Снизить вес до 65 кг» (из калькулятора конструктора) */
   goal?: string;
+  /** 2 — цели в порциях «1 рука = 1 порция». Без поля — старая ссылка в единицах USDA (белок ×3) */
+  u?: 2;
 }
 // Старые ссылки могли содержать freeLimit — поле игнорируется:
 // у свободного приёма пищи нет лимита (решение Вики 15.10).
 // Старые ссылки с goals.fruit / goals.veg: цель fv = их сумма (недостающее — из таблицы),
 // не меньше 5 (решение Вики 16.10). Новые ссылки пишут goals.fv.
 
-interface UsdaPlan {
-  kcal: number;
-  daily: { fruit_cup: number; veg_cup: number; grain_ozeq: number; protein_ozeq: number; dairy_cup: number };
-}
-
-const PLANS = (plansData as { plans: UsdaPlan[] }).plans;
-export const LEVELS: number[] = PLANS.map((p) => p.kcal).sort((a, b) => a - b);
+export const LEVELS: number[] = VIKA_PLANS.map((p) => p.kcal).sort((a, b) => a - b);
 export const MIN_LEVEL = LEVELS[0];
 export const MAX_LEVEL = LEVELS[LEVELS.length - 1];
 
@@ -60,20 +56,14 @@ export function fvGoal(fruitCup: number, vegCup: number): number {
   return Math.max(FV_MIN, Math.round((fruitCup + vegCup) * 2) / 2);
 }
 
-function usdaDaily(kcal: number): UsdaPlan["daily"] {
-  return PLANS.find((x) => x.kcal === snapLevel(kcal))!.daily;
+/** Цели по таблице Вики «версия 2» для уровня */
+export function tableGoals(kcal: number): Goals {
+  const d = VIKA_PLANS.find((x) => x.kcal === snapLevel(kcal))!;
+  return { fv: Math.max(FV_MIN, d.fv), grain: d.grain, prot: d.prot, dairy: d.dairy };
 }
 
-/** Цели по таблице USDA для уровня */
-export function tableGoals(kcal: number): Goals {
-  const d = usdaDaily(kcal);
-  return {
-    fv: fvGoal(d.fruit_cup, d.veg_cup),
-    grain: d.grain_ozeq,
-    prot: d.protein_ozeq,
-    dairy: d.dairy_cup,
-  };
-}
+/** Белок в старых ссылках и журнале — в oz-eq USDA: ладонь = 3. Теперь ладонь = 1 */
+export const USDA_PROT_PER_PORTION = 3;
 
 export const VEG_PROTEIN_FACTOR = 1.5;
 
@@ -84,7 +74,7 @@ export function suggestedGoals(kcal: number, veg: boolean): Goals {
   return base;
 }
 
-/** Итоговые дневные цели (таблица, вегетарианский белок, поправки специалиста), в единицах USDA */
+/** Итоговые дневные цели (таблица, вегетарианский белок, поправки специалиста), в порциях */
 export function planGoals(plan: Plan): Goals {
   const base = suggestedGoals(plan.kcal, !!plan.veg);
   for (const g of DAILY_IDS) {
@@ -150,12 +140,13 @@ export function sanitizePlan(raw: unknown): Plan | null {
       const v = num(og[g], 0, 20);
       if (v !== undefined) goals[g] = v;
     }
-    // старая ссылка: отдельные фрукты и овощи → одна цель fv
+    // старая ссылка: отдельные фрукты и овощи → одна цель fv (недостающее — 2,5)
     const fruit = num(og.fruit, 0, 20), veg = num(og.veg, 0, 20);
     if (goals.fv === undefined && (fruit !== undefined || veg !== undefined)) {
-      const t = usdaDaily(plan.kcal);
-      goals.fv = fvGoal(fruit ?? t.fruit_cup, veg ?? t.veg_cup);
+      goals.fv = fvGoal(fruit ?? 2.5, veg ?? 2.5);
     }
+    // ссылка до 30.10: белок в oz-eq (ладонь = 3) → порции, округление до ½
+    if (o.u !== 2 && goals.prot !== undefined) goals.prot = Math.round((goals.prot / USDA_PROT_PER_PORTION) * 2) / 2;
     if (Object.keys(goals).length) plan.goals = goals;
   }
   if (o.veg === true) plan.veg = true;
@@ -167,6 +158,7 @@ export function sanitizePlan(raw: unknown): Plan | null {
   if (contact && contactHref(contact)) plan.contact = contact;
   const goal = str(o.goal, 80);
   if (goal) plan.goal = goal;
+  plan.u = 2;
   return plan;
 }
 
@@ -227,5 +219,5 @@ export function savePlan(plan: Plan): void {
 }
 
 export function demoPlan(): Plan {
-  return { v: 1, client: "Демо", specialist: "Вика", kcal: 1800, start: addDays(today(), -21) };
+  return { v: 1, client: "Демо", specialist: "Вика", kcal: 1800, start: addDays(today(), -21), u: 2 };
 }

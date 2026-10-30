@@ -16,6 +16,8 @@ export const KEYS = {
   goal: PREFIX + "goal",
   /** подсказку «Приложение на экране Домой» скрыли */
   installHint: PREFIX + "installHint",
+  /** "hands1" — журнал уже в порциях «1 рука = 1 порция» (белок переведён из oz-eq) */
+  units: PREFIX + "units",
 } as const;
 
 const memory = new Map<string, string>();

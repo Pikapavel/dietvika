@@ -12,7 +12,7 @@ export interface WeekStats {
   /** дни с хотя бы одной отметкой */
   logged: ISODate[];
   goals: Goals;
-  /** среднее съеденное за день по дням с отметками, в единицах USDA */
+  /** среднее съеденное за день по дням с отметками, в порциях */
   avg: Record<DailyId, number>;
   /** avg / goal */
   ratio: Record<DailyId, number>;

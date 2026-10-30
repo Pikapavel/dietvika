@@ -70,6 +70,7 @@ export function useAppData() {
 
   const reset = useCallback(() => {
     clearAll();
+    writeRaw(KEYS.units, "hands1");
     setPlanState(null);
     setLog({});
     setWeights({});
