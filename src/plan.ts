@@ -27,6 +27,8 @@ export interface Plan {
   goal?: string;
   /** 2 — цели в порциях «1 рука = 1 порция». Без поля — старая ссылка в единицах USDA (белок ×3) */
   u?: 2;
+  /** план подобран самим клиентом в анкете, без специалиста */
+  self?: true;
 }
 // Старые ссылки могли содержать freeLimit — поле игнорируется:
 // у свободного приёма пищи нет лимита (решение Вики 15.10).
@@ -158,6 +160,7 @@ export function sanitizePlan(raw: unknown): Plan | null {
   if (contact && contactHref(contact)) plan.contact = contact;
   const goal = str(o.goal, 80);
   if (goal) plan.goal = goal;
+  if (o.self === true) plan.self = true;
   plan.u = 2;
   return plan;
 }

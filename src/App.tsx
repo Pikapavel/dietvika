@@ -3,6 +3,7 @@ import { useEffect, useMemo } from "react";
 import { decodePlan, demoPlan, planFromHash } from "./plan";
 import { go, replaceHash, useAppData, useHash } from "./store";
 import { Builder } from "./screens/Builder";
+import { Calc } from "./screens/Calc";
 import { ConfirmPlan } from "./screens/ConfirmPlan";
 import { Onboarding } from "./screens/Onboarding";
 import { Portions } from "./screens/Portions";
@@ -49,6 +50,8 @@ export function App() {
     );
   } else if (route === "vika") {
     body = <Builder />;
+  } else if (route === "calc") {
+    body = <Calc onAccept={(p) => { data.setPlan(p); go("#/today"); toast("План сохранён"); }} />;
   } else if (!data.plan) {
     body = <Welcome onDemo={() => { data.setPlan(demoPlan()); go("#/today"); }} />;
   } else if (!data.onboarded || route === "intro") {

@@ -3,7 +3,7 @@
 import { WEEKDAY_SHORT, addDays, rangeLabel, shortDate, weekDays, type ISODate } from "./dates";
 import { allClosed, hasEntries, sumDay, type Log, type Weights } from "./log";
 import { LEVELS, legWeekGoal, levelNumber, planGoals, waterGoal, type Goals, type Plan } from "./plan";
-import { DAILY_IDS, FREE, GROUPS, fmt, plural, GLASS, toDisplay, type DailyId } from "./units";
+import { DAILY_IDS, FAT, FREE, GROUPS, fmt, plural, GLASS, toDisplay, type DailyId } from "./units";
 
 export interface WeekStats {
   days: ISODate[];
@@ -26,6 +26,8 @@ export interface WeekStats {
   freeByDay: number[];
   waterAvg: number;
   waterGoal: number;
+  /** масла и жиры: среднее порций в день по дням с отметками (без цели) */
+  fatAvg: number;
   fullDays: number;
 }
 
@@ -46,12 +48,14 @@ export function weekStats(plan: Plan, log: Log, anyDay: ISODate, todayIso: ISODa
   const freeByDay = days.map((d) => sumDay(log, d, "free"));
   const free = freeByDay.reduce((a, n) => a + n, 0);
   const water = logged.reduce((a, d) => a + sumDay(log, d, "water"), 0);
+  const fat = logged.reduce((a, d) => a + sumDay(log, d, "fat"), 0);
   return {
     days, past, logged, goals, avg, ratio, reached, free, freeByDay,
     leg: days.reduce((a, d) => a + sumDay(log, d, "leg"), 0),
     legGoal: legWeekGoal(plan),
     waterAvg: logged.length ? water / logged.length : 0,
     waterGoal: waterGoal(plan),
+    fatAvg: logged.length ? fat / logged.length : 0,
     fullDays: past.filter((d) => allClosed(log, d, goals)).length,
   };
 }
@@ -83,6 +87,7 @@ export function summaryText(plan: Plan, log: Log, weights: Weights, todayIso: IS
   }
   lines.push(`• ${GROUPS.leg.name}: ${fmt(s.leg)} из ${s.legGoal} за неделю`);
   lines.push(`• Вода: ${fmt(s.waterAvg)} / ${s.waterGoal} ${plural(s.waterGoal, GLASS)}`);
+  lines.push(`• ${FAT.name}: ${fmt(s.fatAvg)} в день`);
   lines.push("");
   lines.push(`Дней со всеми кольцами: ${s.fullDays}`);
   const byDay = s.past.map((_, i) => `${WEEKDAY_SHORT[i].toLowerCase()} ${s.freeByDay[i]}`).join(", ");

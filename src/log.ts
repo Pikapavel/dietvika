@@ -6,8 +6,8 @@ import { DAILY_IDS, GROUP_IDS, type GroupId } from "./units";
 import { KEYS, readJSON, readRaw, writeJSON, writeRaw } from "./storage";
 import type { Goals } from "./plan";
 
-export type LogGroup = GroupId | "water" | "free";
-export const LOG_GROUPS: LogGroup[] = [...GROUP_IDS, "water", "free"];
+export type LogGroup = GroupId | "water" | "free" | "fat";
+export const LOG_GROUPS: LogGroup[] = [...GROUP_IDS, "water", "free", "fat"];
 
 export interface Entry {
   g: LogGroup;
