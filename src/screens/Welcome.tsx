@@ -1,5 +1,6 @@
 import { PasteLink } from "../components/PasteLink";
 import { Rings } from "../components/Rings";
+import { go } from "../store";
 
 export function Welcome({ onDemo }: { onDemo: () => void }) {
   const p = { fv: 0.8, grain: 0.9, prot: 0.55, dairy: 0.75 };
@@ -16,7 +17,8 @@ export function Welcome({ onDemo }: { onDemo: () => void }) {
         <PasteLink />
         <p className="muted small">Все отметки хранятся только на твоём телефоне. Сервера нет.</p>
       </div>
-      <button className="btn block" onClick={onDemo}>Посмотреть демо</button>
+      <button className="btn block" onClick={() => go("#/calc")}>Подобрать план самому</button>
+      <button className="btn secondary block" onClick={onDemo}>Посмотреть демо</button>
       <p className="muted small" style={{ textAlign: "center" }}>Для специалиста: <a href="#/vika">собрать ссылку для клиента</a></p>
     </div>
   );

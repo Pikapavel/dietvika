@@ -14,14 +14,14 @@ import { BangButton, SugarSheet } from "../components/SugarSheet";
 import { ReminderSheet } from "../components/ReminderSheet";
 import { savedReminder } from "../reminder";
 import {
-  DAILY_IDS, FREE, GLASS, SUGAR, VEG_NOTE, VEG_WHY, vegProteinOrder, GROUPS, GROUP_IDS, PICKER, WATER, fmt, fromDisplay, handLines, nudgeText, plural,
+  DAILY_IDS, FAT, FREE, GLASS, SUGAR, VEG_NOTE, VEG_WHY, vegProteinOrder, GROUPS, GROUP_IDS, PICKER, WATER, fmt, fromDisplay, handLines, nudgeText, plural,
   portions, portionsAcc, portionExample, portionTitle, toDisplay, type DailyId, type GroupId,
 } from "../units";
 
 interface Food { g: GroupId | "free"; name: string; hand: string; q: number; grams?: string; note?: string }
 const FOODS = foodsData as Food[];
 
-type Open = GroupId | "water" | "free" | "sugar" | "reminder" | null;
+type Open = GroupId | "water" | "free" | "fat" | "sugar" | "reminder" | null;
 
 export function Today({ data, plan }: { data: AppData; plan: Plan }) {
   const now = todayIso();
@@ -56,6 +56,8 @@ export function Today({ data, plan }: { data: AppData; plan: Plan }) {
   const water = sumDay(log, date, "water");
   // свободный приём пищи — счётчик за выбранный день, без цели и лимита
   const free = sumDay(log, date, "free");
+  // масла и жиры — тоже без цели (Вика, 31.10)
+  const fat = sumDay(log, date, "fat");
 
   return (
     <>
@@ -150,6 +152,14 @@ export function Today({ data, plan }: { data: AppData; plan: Plan }) {
             onMinus={() => data.minus(date, "free", 1)}
             unitName="отметка"
           />
+          <Tile id="fat" name={FAT.name} color="var(--fat)" emoji="🫒"
+            value={fmt(fat)} goal="" sub={isToday ? "сегодня" : "вчера"}
+            canMinus={fat > 0}
+            onOpen={() => setOpen("fat")}
+            onPlus={() => data.add(date, "fat", "Порция", 1)}
+            onMinus={() => data.minus(date, "fat", 1)}
+            unitName="порция"
+          />
         </div>
         <div className="sugar-line">
           <span>{SUGAR.line}</span>
@@ -158,13 +168,14 @@ export function Today({ data, plan }: { data: AppData; plan: Plan }) {
       </section>
 
       {open === "reminder" && <ReminderSheet onClose={() => setOpen(null)} onAdded={setReminder} />}
-      {open && open !== "water" && open !== "free" && open !== "sugar" && open !== "reminder" && (
+      {open && open !== "water" && open !== "free" && open !== "fat" && open !== "sugar" && open !== "reminder" && (
         <GroupSheet g={open} date={date} isToday={isToday} data={data} goal={open === "leg" ? legGoal : goals[open]} veg={!!plan.veg} onClose={() => setOpen(null)} />
       )}
       {open === "water" && <WaterSheet date={date} isToday={isToday} data={data} goal={wGoal} onClose={() => setOpen(null)} />}
       {open === "free" && (
         <FreeSheet date={date} isToday={isToday} data={data} count={free} onClose={() => setOpen(null)} onSugar={() => setOpen("sugar")} />
       )}
+      {open === "fat" && <FatSheet date={date} isToday={isToday} data={data} count={fat} onClose={() => setOpen(null)} />}
       {open === "sugar" && <SugarSheet onClose={() => setOpen(null)} />}
     </>
   );
@@ -333,6 +344,50 @@ function WaterSheet({ date, isToday, data, goal, onClose }: { date: ISODate; isT
         ))}
       </div>
       <Marks title="Отмечено" items={entriesOf(data, date, "water")} label={(e) => `${e.f}`} onRemove={data.removeAt} />
+    </Sheet>
+  );
+}
+
+/** «Масла и жиры»: кончик большого пальца, без цели; норма 2–3 порции — советом */
+function FatSheet({ date, isToday, data, count, onClose }: {
+  date: ISODate; isToday: boolean; data: AppData; count: number; onClose: () => void;
+}) {
+  const [sel, setSel] = useState(1);
+  return (
+    <Sheet label={FAT.name} onClose={onClose}>
+      <SheetHead eyebrow={`${isToday ? "Сегодня" : "Вчера"}: ${fmt(count)}`} title={FAT.name} color="var(--fat)" onClose={onClose} />
+      <div className="ghero" style={{ ["--gc" as string]: "var(--fat)" }}>
+        <HandIcon shape={FAT.shape} color="var(--fat)" size={132} />
+      </div>
+      <div>
+        <h3 className="gportion">{FAT.title}</h3>
+        <p className="gexample">{FAT.example}</p>
+      </div>
+      <div>
+        <div className="eyebrow" style={{ marginBottom: 6 }} id="pick-fat">Сколько</div>
+        <div className="picker" role="group" aria-labelledby="pick-fat">
+          {PICKER.map((v) => (
+            <button key={v} aria-pressed={v === sel} onClick={() => setSel(v)} style={v === sel ? { background: "var(--fat)" } : undefined}>{fmt(v)}</button>
+          ))}
+        </div>
+      </div>
+      <button className="btn block" style={{ background: "var(--fat)", color: "var(--on-color)" }} onClick={() => data.add(date, "fat", "Порция", sel)}>
+        Отметить {portionsAcc(sel)}
+      </button>
+      <Marks title={isToday ? "Отмечено сегодня" : "Отмечено вчера"} items={entriesOf(data, date, "fat")}
+        label={(e) => portions(e.q)} onRemove={data.removeAt} />
+      {FAT.list.map((sec) => (
+        <div key={sec.title}>
+          <h3 className="plist-h">{sec.title}</h3>
+          <ul className="plist">
+            {sec.items.map(([name, m]) => <li key={name}><span>{name}</span>{m && <small>{m}</small>}</li>)}
+          </ul>
+        </div>
+      ))}
+      <div className="card ginfo">
+        <div className="ginfo-h">Полезно знать</div>
+        <p>{FAT.norm}</p>
+      </div>
     </Sheet>
   );
 }

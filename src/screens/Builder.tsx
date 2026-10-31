@@ -1,7 +1,7 @@
 // #/vika — конструктор ссылки для специалиста. Без входа, только для теста.
 import { useMemo, useState } from "react";
 import { today as todayIso } from "../dates";
-import { ACTIVITY_LABEL, STATUS_KCAL, STATUS_LABEL, suggestLevel, type Activity, type Goal, type Sex, type Status } from "../nasem";
+import { ACTIVITY_HINT, ACTIVITY_LABEL, STATUS_KCAL, STATUS_LABEL, suggestLevel, type Activity, type Goal, type Sex, type Status } from "../nasem";
 import { LEG_WEEK_DEFAULT, LEVELS, VIKA_CONTACT, contactHref, inviteLink, suggestedGoals, type Goals, type Plan } from "../plan";
 import { useToast } from "../components/Toast";
 import { copyText } from "./Profile";
@@ -29,6 +29,7 @@ export function Builder() {
   const [legWeek, setLegWeek] = useState(String(LEG_WEEK_DEFAULT));
   const [water, setWater] = useState(String(WATER.defaultGoal));
   const [link, setLink] = useState("");
+  const [actHelp, setActHelp] = useState(false);
 
   const A = Number(age), H = Number(height), W = Number(weight);
   const valid = A >= 19 && A <= 100 && H >= 120 && H <= 230 && W >= 30 && W <= 300;
@@ -102,7 +103,8 @@ export function Builder() {
             <label className="field"><span>Вес, кг</span><input inputMode="decimal" value={weight} onChange={(e) => setWeight(e.target.value.replace(",", "."))} /></label>
           </div>
           <div className="grid2">
-            <label className="field"><span>Активность</span>
+            <label className="field"><span className="label-i">Активность
+                <button type="button" className="info-i" aria-expanded={actHelp} aria-label="Что значат уровни активности" onClick={(e) => { e.preventDefault(); setActHelp(!actHelp); }}>i</button></span>
               <select value={act} onChange={(e) => setAct(e.target.value as Activity)}>
                 {(Object.keys(ACTIVITY_LABEL) as Activity[]).map((a) => <option key={a} value={a}>{ACTIVITY_LABEL[a]}</option>)}
               </select></label>
@@ -111,6 +113,11 @@ export function Builder() {
                 <option value="maintain">Поддержание</option><option value="lose">Снижение веса</option><option value="gain">Набор мышечной массы</option>
               </select></label>
           </div>
+          {actHelp && (
+            <div className="card act-help" role="note">
+              {(Object.keys(ACTIVITY_LABEL) as Activity[]).map((a) => <p key={a}><b>{ACTIVITY_LABEL[a]}.</b> {ACTIVITY_HINT[a]}</p>)}
+            </div>
+          )}
           {sex === "f" && (
             <label className="field"><span>Беременность и кормление</span>
               <select value={status} onChange={(e) => setStatus(e.target.value as Status)}>

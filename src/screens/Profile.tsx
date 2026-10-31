@@ -15,7 +15,7 @@ import { ReminderSheet } from "../components/ReminderSheet";
 import { BangButton } from "../components/SugarSheet";
 import { savedReminder } from "../reminder";
 import { useToast } from "../components/Toast";
-import { FREE, GLASS, GROUPS, DAILY_IDS, fmt, plural, toDisplay } from "../units";
+import { FAT, FREE, GLASS, GROUPS, DAILY_IDS, fmt, plural, toDisplay } from "../units";
 
 type Theme = "auto" | "light" | "dark";
 
@@ -102,7 +102,7 @@ export function Profile({ data, plan }: { data: AppData; plan: Plan }) {
         <Avatar letter={(plan.client || "Я").slice(0, 1).toUpperCase()} />
         <div>
           <h1>{name}</h1>
-          <div className="muted small">Специалист: {plan.specialist} · план с {dayMonth(plan.start)}</div>
+          <div className="muted small">{plan.self ? "План подобран самостоятельно" : `Специалист: ${plan.specialist}`} · с {dayMonth(plan.start)}</div>
         </div>
       </header>
       <section className="stack">
@@ -190,6 +190,10 @@ export function Profile({ data, plan }: { data: AppData; plan: Plan }) {
           <div className="grow">
             <span><span className="dot" style={{ background: "var(--water)" }} />Вода</span>
             <span className="num">{fmt(s.waterAvg)} из {s.waterGoal} {plural(s.waterGoal, GLASS)}</span>
+          </div>
+          <div className="grow">
+            <span><span className="dot" style={{ background: "var(--fat)" }} />{FAT.name}</span>
+            <span className="num">{fmt(s.fatAvg)} в день · норма 2–3</span>
           </div>
           <div className="grow" data-testid="free-week">
             <span><span className="dot" style={{ background: "var(--free)" }} />{FREE.name}</span>
