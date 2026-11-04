@@ -91,7 +91,7 @@ section.stack, .stack { display: flex; flex-direction: column; gap: 14px; }
 .banner { background: color-mix(in srgb, var(--grain) 16%, var(--surface)); border-radius: 14px; padding: 10px 14px; font-size: .88rem; }
 
 /* tab bar */
-nav.tabs { position: fixed; left: 0; right: 0; bottom: 0; background: var(--surface); border-top: 1px solid var(--line); display: flex; justify-content: center; padding-bottom: env(safe-area-inset-bottom, 0px); z-index: 5; }
+nav.tabs { position: fixed; left: 0; right: 0; bottom: 0; transform: translateZ(0); -webkit-transform: translateZ(0); background: var(--surface); border-top: 1px solid var(--line); display: flex; justify-content: center; padding-bottom: env(safe-area-inset-bottom, 0px); z-index: 5; }
 nav.tabs > div { display: flex; max-width: 460px; width: 100%; }
 nav.tabs a { flex: 1; text-align: center; padding: 9px 4px 8px; font-size: .72rem; color: var(--muted); display: flex; flex-direction: column; align-items: center; gap: 3px; text-decoration: none; min-height: var(--tabbar); justify-content: center; }
 nav.tabs svg { width: 22px; height: 22px; }
@@ -336,10 +336,12 @@ nav.tabs a[aria-current="page"] svg { stroke-width: 2.4; }
 .install ol { margin: 0; padding-left: 20px; display: grid; gap: 4px; font-size: .92rem; }
 .paste summary { cursor: pointer; font-weight: 700; min-height: 28px; }
 .paste[open] summary { margin-bottom: 10px; }
-/* «Полезно знать» приглушённо, как в макете Вики (29.10) */
-.ginfo { color: var(--muted); }
-.ginfo-h { font-size: .9rem; color: var(--muted); }
-.ginfo strong { color: var(--muted); }
+/* «Полезно знать»: жирный заголовок и список с точками, как в примере Вики (02.11) */
+.ginfo { color: color-mix(in srgb, var(--ink) 82%, var(--muted)); }
+.ginfo-h { font-size: 1.05rem; font-weight: 700; color: var(--ink); }
+.ginfo ul { padding-left: 20px; }
+.ginfo li + li { margin-top: 8px; }
+.ginfo li::marker { color: var(--muted); }
 .sugar-top { text-align: center; }
 .sugar-top b { display: block; font-size: 1.15rem; color: var(--ink); }
 .sugar-top p { margin: 4px 0 0; }

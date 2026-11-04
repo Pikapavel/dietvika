@@ -2,7 +2,7 @@ import { useMemo, useState } from "react";
 import foodsData from "../data/foods.json";
 import { cheatFor } from "../data/cheatsheet";
 import { addDays, longDate, today as todayIso, type ISODate } from "../dates";
-import { sumDay, sumWeek, type Entry, type LogGroup } from "../log";
+import { legInProt, sumDay, sumWeek, type Entry, type LogGroup } from "../log";
 import { legWeekGoal, planGoals, waterGoal, type Plan } from "../plan";
 import type { AppData } from "../store";
 import { HandIcon } from "../components/HandIcon";
@@ -14,7 +14,7 @@ import { BangButton, SugarSheet } from "../components/SugarSheet";
 import { ReminderSheet } from "../components/ReminderSheet";
 import { savedReminder } from "../reminder";
 import {
-  DAILY_IDS, FAT, FREE, GLASS, SUGAR, VEG_NOTE, VEG_WHY, vegProteinOrder, GROUPS, GROUP_IDS, PICKER, WATER, fmt, fromDisplay, handLines, nudgeText, plural,
+  DAILY_IDS, FAT, FREE, GLASS, SUGAR, VEG_NOTE, vegProteinOrder, GROUPS, GROUP_IDS, PICKER, WATER, fmt, fromDisplay, nudgeText, plural,
   portions, portionsAcc, portionExample, portionTitle, toDisplay, type DailyId, type GroupId,
 } from "../units";
 
@@ -264,8 +264,9 @@ export function GroupSheet({ g, date, isToday, data, goal, veg, onClose }: {
   const foods = veg && g === "prot" ? vegProteinOrder(groupFoods) : groupFoods;
   const add = (name: string, usda: number) => {
     data.add(date, g, name, usda);
-    toast(`${name}: +${portions(toDisplay(g, usda))}`);
+    toast(g === "leg" ? `Бобовые: +${portions(toDisplay(g, usda))}, засчитано и в белок` : `${name}: +${portions(toDisplay(g, usda))}`);
   };
+  const fromLeg = g === "prot" ? legInProt(data.log, date) : 0;
   return (
     <Sheet label={GROUPS[g].name} onClose={onClose}>
       <SheetHead eyebrow={`${g === "leg" ? "За неделю" : isToday ? "Сегодня" : "Вчера"} ${fmt(toDisplay(g, n))} из ${fmt(toDisplay(g, goal))}`}
@@ -291,6 +292,8 @@ export function GroupSheet({ g, date, isToday, data, goal, veg, onClose }: {
       </button>
       <Marks title={isToday ? "Отмечено сегодня" : "Отмечено вчера"} items={entriesOf(data, date, g)}
         label={(e) => `${e.f} · ${portions(toDisplay(g, e.q))}`} onRemove={data.removeAt} />
+      {fromLeg > 0 && <p className="muted small">Из бобовых: {portions(fromLeg)} — засчитано в белок автоматически.</p>}
+      {g === "leg" && <p className="muted small">Каждая порция бобовых засчитывается и в белок за этот день.</p>}
       {/* Списки продуктов по макету Вики 25.10: подзаголовки, простой список, мера справа */}
       {(cheatFor(g, veg) ?? [{ title: "Продукты", items: foods.map((f) => [f.name, foodMeasure(g, f)] as [string, string]) }]).map((sec) => (
         <div key={sec.title}>
@@ -300,19 +303,14 @@ export function GroupSheet({ g, date, isToday, data, goal, veg, onClose }: {
           </ul>
         </div>
       ))}
-      {/* «Полезно знать» — приглушённо, «мягко умничаем» (Вика, 29.10). Бобовые — только её три пункта */}
-      {g === "leg" && GROUPS.leg.benefits ? (
-        <div className="card ginfo">
-          <div className="ginfo-h">{GROUPS.leg.name}</div>
-          <ul>{GROUPS.leg.benefits.map((b) => <li key={b}>{b}</li>)}</ul>
-        </div>
-      ) : (
+      {/* «Полезно знать» — заголовок и список с точками (макет Вики 02.11), во всех группах одинаково */}
+      {GROUPS[g].benefits && (
         <div className="card ginfo">
           <div className="ginfo-h">Полезно знать</div>
-          <ul>{handLines(g, veg).map((l) => <li key={l}>{l}</li>)}</ul>
-          {GROUPS[g].benefits && <ul>{GROUPS[g].benefits.map((b) => <li key={b}>{b}</li>)}</ul>}
-          <p>{veg && g === "prot" ? VEG_WHY : GROUPS[g].why}</p>
-          {veg && g === "prot" && <p><strong>Вегетарианский план.</strong> {VEG_NOTE}</p>}
+          <ul>
+            {GROUPS[g].benefits.map((b) => <li key={b}>{b}</li>)}
+            {veg && g === "prot" && <li><strong>Вегетарианский план.</strong> {VEG_NOTE}</li>}
+          </ul>
         </div>
       )}
     </Sheet>

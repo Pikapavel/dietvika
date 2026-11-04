@@ -80,8 +80,15 @@ export function saveWeights(w: Weights): void {
   writeJSON(KEYS.weight, w);
 }
 
+/** Сумма группы за день. Белок включает бобовые этого дня: порция бобовых закрывает
+ *  и порцию белка (решение Вики 25.10, docs/18 п. 11; баг 02.11). Бобовые остаются и в недельном счёте. */
 export function sumDay(log: Log, date: ISODate, g: LogGroup): number {
-  return (log[date] ?? []).reduce((a, e) => (e.g === g ? a + e.q : a), 0);
+  return (log[date] ?? []).reduce((a, e) => (e.g === g || (g === "prot" && e.g === "leg") ? a + e.q : a), 0);
+}
+
+/** Сколько белка за день пришло из бобовых — для строки в листе белка */
+export function legInProt(log: Log, date: ISODate): number {
+  return (log[date] ?? []).reduce((a, e) => (e.g === "leg" ? a + e.q : a), 0);
 }
 
 /** Сумма за неделю (пн–вс), в которую попадает дата — для бобовых */
