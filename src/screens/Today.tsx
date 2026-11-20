@@ -103,7 +103,7 @@ export function Today({ data, plan }: { data: AppData; plan: Plan }) {
           );
         })()}
 
-        <p className="muted small">Плюс и минус отмечают одну порцию: ладонь белка, кулак фруктов или овощей, горсть зерновых, стакан молочного. Нажми на название группы — там шпаргалка по порциям и продуктам.</p>
+        <p className="muted small">Плюс и минус отмечают одну порцию. Нажми на название группы — там шпаргалка по порциям и продуктам, которые попадают в эту группу.</p>
 
         <div className="rows">
           {GROUP_IDS.map((g) => {
@@ -277,7 +277,8 @@ export function GroupSheet({ g, date, isToday, data, goal, veg, onClose }: {
       </div>
       <div>
         <h3 className="gportion">{portionTitle(g)}</h3>
-        <p className="gexample">{portionExample(g)}</p>
+        {/* Подпись «Примерная порция:» — по макету Вики из «Шпаргалки по порциям» (20.11) */}
+        <p className="gexample"><strong>Примерная порция: </strong>{portionExample(g)}</p>
       </div>
       <div>
         <div className="eyebrow" style={{ marginBottom: 6 }} id={`pick-${g}`}>Сколько</div>
@@ -290,8 +291,7 @@ export function GroupSheet({ g, date, isToday, data, goal, veg, onClose }: {
       <button className="btn block" style={{ background: color, color: "var(--on-color)" }} onClick={() => add("Порция", fromDisplay(g, sel))}>
         Отметить {portionsAcc(sel)}
       </button>
-      <Marks title={isToday ? "Отмечено сегодня" : "Отмечено вчера"} items={entriesOf(data, date, g)}
-        label={(e) => `${e.f} · ${portions(toDisplay(g, e.q))}`} onRemove={data.removeAt} />
+      {/* Блок «Отмечено сегодня» убран (Вика 20.11): счёт уже наверху («Сегодня N из M»); отмена — минусом на главном экране */}
       {fromLeg > 0 && <p className="muted small">Из бобовых: {portions(fromLeg)} — засчитано в белок автоматически.</p>}
       {g === "leg" && <p className="muted small">Каждая порция бобовых засчитывается и в белок за этот день.</p>}
       {/* Списки продуктов по макету Вики 25.10: подзаголовки, простой список, мера справа */}
@@ -341,7 +341,7 @@ function WaterSheet({ date, isToday, data, goal, onClose }: { date: ISODate; isT
           </button>
         ))}
       </div>
-      <Marks title="Отмечено" items={entriesOf(data, date, "water")} label={(e) => `${e.f}`} onRemove={data.removeAt} />
+      {/* Блок «Отмечено» убран, как в листах групп (Вика 20.11) */}
     </Sheet>
   );
 }
@@ -359,7 +359,9 @@ function FatSheet({ date, isToday, data, count, onClose }: {
       </div>
       <div>
         <h3 className="gportion">{FAT.title}</h3>
-        <p className="gexample">{FAT.example}</p>
+        {/* Подписи «Примерная порция» и «Дневная норма» — по макету Вики из «Шпаргалки по порциям» (20.11) */}
+        <p className="gexample"><strong>Примерная порция: </strong>{FAT.example}</p>
+        <p className="gexample" style={{ marginTop: 4 }}><strong>Дневная норма: </strong>{FAT.dayNorm}</p>
       </div>
       <div>
         <div className="eyebrow" style={{ marginBottom: 6 }} id="pick-fat">Сколько</div>
@@ -372,8 +374,7 @@ function FatSheet({ date, isToday, data, count, onClose }: {
       <button className="btn block" style={{ background: "var(--fat)", color: "var(--on-color)" }} onClick={() => data.add(date, "fat", "Порция", sel)}>
         Отметить {portionsAcc(sel)}
       </button>
-      <Marks title={isToday ? "Отмечено сегодня" : "Отмечено вчера"} items={entriesOf(data, date, "fat")}
-        label={(e) => portions(e.q)} onRemove={data.removeAt} />
+      {/* Блок «Отмечено сегодня» убран, как в листах групп (Вика 20.11) */}
       {FAT.list.map((sec) => (
         <div key={sec.title}>
           <h3 className="plist-h">{sec.title}</h3>
