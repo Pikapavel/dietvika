@@ -103,6 +103,8 @@ nav.tabs a[aria-current="page"] { color: var(--ink); font-weight: 700; }
 @keyframes fade { from { opacity: 0; } }
 @keyframes up { from { transform: translateY(40px); } }
 .ghead { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; }
+/* Заголовок шпаргалки — обычный шрифт, только крупнее (Вика 20.11: Unbounded «мужской») */
+.ghead h2 { font-family: var(--body); font-size: 1.3rem; }
 .close { border: 0; flex: none; width: 36px; height: 36px; border-radius: 50%; background: var(--track); font-size: 1.2rem; line-height: 1; }
 .hint { background: var(--surface); border-radius: 14px; padding: 12px; font-size: .88rem; display: flex; gap: 12px; align-items: flex-start; }
 .hint > svg { flex: none; width: 44px; height: 44px; }
@@ -288,10 +290,13 @@ nav.tabs a[aria-current="page"] svg { stroke-width: 2.4; }
 .hand-pad { display: grid; place-items: center; border-radius: 50%; background: var(--track); padding: 6px; }
 
 /* Шпаргалка группы: крупная рука сверху (макет Вики 24.10) */
-.ghero { display: grid; place-items: center; border-radius: 18px; padding: 14px; background: var(--track); background: color-mix(in srgb, var(--gc) 16%, var(--surface)); }
+/* Подсвеченную подложку под рукой убрали (Вика 20.11): рука — на общем фоне */
+.ghero { display: grid; place-items: center; padding: 6px; }
 .ghero .hand-img, .ghero svg { width: 132px; height: 132px; }
-.gportion { font-family: var(--display); font-size: 1.25rem; margin: 2px 0 4px; }
-.gexample { font-style: italic; color: var(--muted); margin: 0; font-size: .92rem; }
+/* «Порция: …» — как подписи продуктов .plist-h (Вика 20.11), без декоративного шрифта */
+.gportion { font-family: var(--body); font-size: 1.05rem; font-weight: 700; color: var(--ink); margin: 2px 0 4px; }
+/* Курсив убран (Вика 20.11); подпись «Примерная порция:» — полужирная в начале строки */
+.gexample { color: var(--muted); margin: 0; font-size: .92rem; }
 .ginfo ul { margin: 6px 0 0; padding-left: 18px; font-size: .9rem; }
 .ginfo li + li { margin-top: 3px; }
 .ginfo p { margin: 8px 0 0; font-size: .9rem; }
